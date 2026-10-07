@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Xylocopadream.UI.Avalonia/Xylocopadream.UI.Avalonia.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Xylocopadream.UI.Avalonia.Gallery/Xylocopadream.UI.Avalonia.Gallery.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Xylocopadream.UI.Avalonia.Tests/Xylocopadream.UI.Avalonia.Tests.csproj" />
+  </Folder>
+</Solution>

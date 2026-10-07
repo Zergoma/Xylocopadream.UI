@@ -1,0 +1,321 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xd="https://github.com/Zergoma/Xylocopadream.UI"
+        xmlns:local="using:Xylocopadream.UI.Avalonia.Gallery"
+        x:Class="Xylocopadream.UI.Avalonia.Gallery.MainWindow"
+        x:DataType="local:MainWindow"
+        Title="Xylocopadream UI — Galerie Avalonia"
+        Width="1280" Height="860" WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.section">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,8,0,10" />
+        </Style>
+        <Style Selector="Border.section">
+            <Setter Property="Padding" Value="20,12,20,20" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Xd.Border}" />
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <!-- ===== Main toolbar ===== -->
+        <Border DockPanel.Dock="Top" Classes="panel" Height="40" Padding="12,0" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <xd:InitialsBadge Text="Xylocopadream UI" />
+                    <TextBlock Text="Xylocopadream.UI.Avalonia" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Text="galerie des composants" Classes="secondary" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <Button Classes="tool" ToolTip.Tip="Paramètres">
+                        <Path Classes="icon" Data="{StaticResource Xd.Icon.Shield}" />
+                    </Button>
+                    <Button Classes="tool" ToolTip.Tip="Verrouiller">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Classes="icon" Data="{StaticResource Xd.Icon.Lock}" />
+                            <TextBlock Text="Verrouiller" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===== Status bar ===== -->
+        <Border DockPanel.Dock="Bottom" Classes="panel" Height="26" Padding="10,0" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Classes="tool crumb" Content="Xylocopadream.UI" />
+                    <Path Classes="icon" Data="{StaticResource Xd.Icon.ChevronRight}" Opacity="0.5" />
+                    <Button Classes="tool crumb" Content="Avalonia" FontWeight="SemiBold" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Classes="secondary small" HorizontalAlignment="Right" VerticalAlignment="Center"
+                           Text="{Binding StatusText}" />
+            </Grid>
+        </Border>
+
+        <!-- ===== Tool window stripe ===== -->
+        <Border DockPanel.Dock="Left" Classes="panel" Width="40" Padding="0,6" BorderThickness="0,0,1,0">
+            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                <ToggleButton x:Name="SectionsToggle" Classes="stripe" IsChecked="True" ToolTip.Tip="Sections">
+                    <Path Classes="icon" Data="{StaticResource Xd.Icon.Thumbnails}" />
+                </ToggleButton>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== Sections tool window ===== -->
+        <DockPanel DockPanel.Dock="Left" Width="200" Background="{DynamicResource Xd.PanelBackground}"
+                   IsVisible="{Binding #SectionsToggle.IsChecked}">
+            <TextBlock DockPanel.Dock="Top" Text="Sections" Classes="title" Margin="12,9" />
+            <ListBox x:Name="SectionList" Background="Transparent" Padding="4,0" SelectionChanged="OnSectionSelected">
+                <ListBoxItem Content="Palette" Tag="PaletteSection" />
+                <ListBoxItem Content="Icônes" Tag="IconsSection" />
+                <ListBoxItem Content="Boutons" Tag="ButtonsSection" />
+                <ListBoxItem Content="Champs" Tag="InputsSection" />
+                <ListBoxItem Content="Badges et chips" Tag="BadgesSection" />
+                <ListBoxItem Content="Listes" Tag="ListsSection" />
+                <ListBoxItem Content="Visionneuse" Tag="ViewerSection" />
+                <ListBoxItem Content="Dialogues" Tag="DialogsSection" />
+            </ListBox>
+        </DockPanel>
+        <Border DockPanel.Dock="Left" Width="1" Background="{DynamicResource Xd.Separator}"
+                IsVisible="{Binding #SectionsToggle.IsChecked}" />
+
+        <!-- ===== Content ===== -->
+        <ScrollViewer x:Name="ContentScroller">
+            <StackPanel>
+                <!-- Palette -->
+                <Border x:Name="PaletteSection" Classes="section">
+                    <StackPanel>
+                        <TextBlock Classes="section" Text="Palette" />
+                        <ItemsControl ItemsSource="{Binding Swatches}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="local:Swatch">
+                                    <StackPanel Width="132" Margin="0,0,8,10" Spacing="4">
+                                        <Border Height="36" CornerRadius="4" Background="{Binding Brush}"
+                                                BorderBrush="{DynamicResource Xd.Border}" BorderThickness="1" />
+                                        <TextBlock Text="{Binding Key}" Classes="small" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Icons -->
+                <Border x:Name="IconsSection" Classes="section">
+                    <StackPanel>
+                        <TextBlock Classes="section" Text="Icônes" />
+                        <TextBlock Classes="secondary small" Margin="0,-6,0,10"
+                                   Text="&lt;Path Classes=&quot;icon&quot; Data=&quot;{StaticResource Xd.Icon.Folder}&quot; /&gt;" />
+                        <ItemsControl ItemsSource="{Binding Icons}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="xd:XdIcon">
+                                    <StackPanel Width="104" Margin="0,0,4,12" Spacing="6" ToolTip.Tip="{Binding Key}">
+                                        <Path Classes="icon" Data="{Binding Geometry}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding Name}" Classes="secondary small" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Buttons -->
+                <Border x:Name="ButtonsSection" Classes="section">
+                    <StackPanel Spacing="12">
+                        <TextBlock Classes="section" Text="Boutons" />
+                        <WrapPanel>
+                            <Button Content="Par défaut" Margin="0,0,8,0" />
+                            <Button Classes="accent" Content="Accent" Margin="0,0,8,0" />
+                            <Button Classes="danger" Content="Danger" Margin="0,0,8,0" />
+                            <Button Content="Désactivé" IsEnabled="False" Margin="0,0,8,0" />
+                            <Button Classes="link" Content="Lien" VerticalAlignment="Center" />
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="1">
+                            <Button Classes="tool" ToolTip.Tip="Classes=&quot;tool&quot;">
+                                <Path Classes="icon" Data="{StaticResource Xd.Icon.Import}" />
+                            </Button>
+                            <Button Classes="tool">
+                                <Path Classes="icon" Data="{StaticResource Xd.Icon.Rename}" />
+                            </Button>
+                            <Button Classes="tool" IsEnabled="False">
+                                <Path Classes="icon" Data="{StaticResource Xd.Icon.Delete}" />
+                            </Button>
+                            <Border Classes="toolbar-separator" />
+                            <Button Classes="tool">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Path Classes="icon" Data="{StaticResource Xd.Icon.Refresh}" />
+                                    <TextBlock Text="Icône et texte" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Border Classes="toolbar-separator" />
+                            <ToggleButton Classes="stripe" IsChecked="True" ToolTip.Tip="Classes=&quot;stripe&quot;">
+                                <Path Classes="icon" Data="{StaticResource Xd.Icon.Folder}" />
+                            </ToggleButton>
+                            <ToggleButton Classes="stripe">
+                                <Path Classes="icon" Data="{StaticResource Xd.Icon.Tag}" />
+                            </ToggleButton>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Inputs -->
+                <Border x:Name="InputsSection" Classes="section">
+                    <StackPanel Spacing="10" MaxWidth="460" HorizontalAlignment="Left">
+                        <TextBlock Classes="section" Text="Champs" />
+                        <TextBox PlaceholderText="Texte libre" />
+                        <TextBox PlaceholderText="Rechercher   Ctrl+F">
+                            <TextBox.InnerLeftContent>
+                                <Path Classes="icon" Data="{StaticResource Xd.Icon.Search}" Margin="8,0,0,0" Opacity="0.7" />
+                            </TextBox.InnerLeftContent>
+                        </TextBox>
+                        <ComboBox SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="Argon2id (recommandé)" />
+                            <ComboBoxItem Content="PBKDF2-SHA256" />
+                        </ComboBox>
+                        <CheckBox Content="Afficher le mot de passe" />
+                        <Slider Minimum="0" Maximum="100" Value="40" />
+                        <Border Classes="error">
+                            <TextBlock Text="Border Classes=&quot;error&quot; : message d'erreur d'un formulaire." />
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Badges and chips -->
+                <Border x:Name="BadgesSection" Classes="section">
+                    <StackPanel Spacing="12">
+                        <TextBlock Classes="section" Text="Badges et chips" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <xd:InitialsBadge Text="Mon Coffre" Size="22" />
+                            <xd:InitialsBadge Text="XyloType" Size="28" />
+                            <xd:InitialsBadge Text="C:\Projets\photos" Size="36" />
+                            <xd:InitialsBadge Text="Tasker" Size="48" />
+                        </StackPanel>
+                        <WrapPanel>
+                            <ItemsControl ItemsSource="{Binding Tags}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Button Classes="chip" Content="{Binding}"
+                                                Background="{Binding Converter={x:Static xd:XdConverters.NameColor}}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Border Classes="chip-more" VerticalAlignment="Center">
+                                <TextBlock Text="+2" />
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Lists -->
+                <Border x:Name="ListsSection" Classes="section">
+                    <StackPanel>
+                        <TextBlock Classes="section" Text="Listes" />
+                        <Grid ColumnDefinitions="260,24,*" Height="200">
+                            <Border Classes="panel" CornerRadius="4">
+                                <TreeView Padding="4">
+                                    <TreeViewItem IsExpanded="True">
+                                        <TreeViewItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <Path Classes="icon folder" Data="{StaticResource Xd.Icon.Folder}" />
+                                                <TextBlock Text="Projet" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </TreeViewItem.Header>
+                                        <TreeViewItem>
+                                            <TreeViewItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <Path Classes="icon folder" Data="{StaticResource Xd.Icon.Folder}" />
+                                                    <TextBlock Text="Documents" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </TreeViewItem.Header>
+                                        </TreeViewItem>
+                                        <TreeViewItem>
+                                            <TreeViewItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <Path Classes="icon" Data="{StaticResource Xd.Icon.Image}" />
+                                                    <TextBlock Text="photo.jpg" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </TreeViewItem.Header>
+                                        </TreeViewItem>
+                                    </TreeViewItem>
+                                </TreeView>
+                            </Border>
+                            <ListBox Grid.Column="2" Classes="tiles" SelectionMode="Multiple" Background="Transparent" AutoScrollToSelectedItem="False">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBoxItem>
+                                    <StackPanel Width="96" Spacing="4">
+                                        <Viewbox Width="40" Height="40"><Path Classes="icon folder" Data="{StaticResource Xd.Icon.Folder}" /></Viewbox>
+                                        <TextBlock Text="Dossier" TextAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem IsSelected="True">
+                                    <StackPanel Width="96" Spacing="4">
+                                        <Viewbox Width="40" Height="40"><Path Classes="icon" Data="{StaticResource Xd.Icon.Video}" /></Viewbox>
+                                        <TextBlock Text="clip.mp4" TextAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem>
+                                    <StackPanel Width="96" Spacing="4">
+                                        <Viewbox Width="40" Height="40"><Path Classes="icon" Data="{StaticResource Xd.Icon.Document}" /></Viewbox>
+                                        <TextBlock Text="notes.txt" TextAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                            </ListBox>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Viewer -->
+                <Border x:Name="ViewerSection" Classes="section">
+                    <StackPanel>
+                        <TextBlock Classes="section" Text="Visionneuse : ZoomPanViewer et Minimap" />
+                        <TextBlock Classes="secondary small" Margin="0,-6,0,10"
+                                   Text="Molette : zoom autour du curseur · glisser : déplacer · double clic : 100 % / ajuster · double clic sur la mini-carte : changer de coin" />
+                        <Panel Height="300" ClipToBounds="True" Background="#151618">
+                            <xd:ZoomPanViewer x:Name="Viewer" Source="{Binding SampleImage}" />
+                            <xd:Minimap x:Name="Map" Width="180" Height="120" Margin="12"
+                                        Source="{Binding SampleImage}" Viewport="{Binding #Viewer.VisibleRect}"
+                                        IsVisible="{Binding #Viewer.IsZoomedIn}" />
+                        </Panel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Dialogs -->
+                <Border x:Name="DialogsSection" Classes="section" BorderThickness="0">
+                    <StackPanel Spacing="10">
+                        <TextBlock Classes="section" Text="Dialogues : DialogService" />
+                        <WrapPanel>
+                            <Button Content="Saisie…" Click="OnPrompt" Margin="0,0,8,0" />
+                            <Button Content="Confirmation…" Click="OnConfirm" Margin="0,0,8,0" />
+                            <Button Content="Suppression…" Click="OnConfirmDestructive" Margin="0,0,8,0" />
+                            <Button Content="Erreur…" Click="OnError" />
+                        </WrapPanel>
+                        <TextBlock Text="{Binding DialogResult}" Classes="secondary" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
