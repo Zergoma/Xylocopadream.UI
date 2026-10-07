@@ -1,11 +1,14 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Xylocopadream.UI.Avalonia/Xylocopadream.UI.Avalonia.csproj" />
+    <Project Path="src/Xylocopadream.UI.Maui/Xylocopadream.UI.Maui.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Xylocopadream.UI.Avalonia.Gallery/Xylocopadream.UI.Avalonia.Gallery.csproj" />
+    <Project Path="samples/Xylocopadream.UI.Maui.Gallery/Xylocopadream.UI.Maui.Gallery.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Xylocopadream.UI.Avalonia.Tests/Xylocopadream.UI.Avalonia.Tests.csproj" />
+    <Project Path="tests/Xylocopadream.UI.Maui.Tests/Xylocopadream.UI.Maui.Tests.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:xd="https://github.com/Zergoma/Xylocopadream.UI"
+             x:Class="Xylocopadream.UI.Maui.Gallery.GalleryPage"
+             BackgroundColor="{DynamicResource Xd.AccentPageBackground}">
+
+    <!-- laid out like a JetBrains IDE: navigation rail, content, a rail on the right, a status bar -->
+    <Grid RowDefinitions="*,26" ColumnDefinitions="60,*,60">
+
+        <xd:NavRail x:Name="Rail" ItemClicked="Rail_ItemClicked"/>
+
+        <ScrollView Grid.Column="1">
+            <VerticalStackLayout x:Name="Sections" Padding="28,20" Spacing="26">
+
+                <Label x:Name="SectionTitle" FontSize="22" FontAttributes="Bold" TextColor="{DynamicResource Xd.Text}"/>
+
+                <!-- IconButton -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="IconButton" FontAttributes="Bold" TextColor="{DynamicResource Xd.Text}"/>
+                    <HorizontalStackLayout Spacing="12">
+                        <xd:IconButton Icon="{x:Static xd:XdIcons.Previous}" xd:InstantToolTip.Text="Previous" xd:InstantToolTip.Placement="Below"/>
+                        <xd:IconButton Icon="{x:Static xd:XdIcons.Next}" xd:InstantToolTip.Text="Next" xd:InstantToolTip.Placement="Below"/>
+                        <xd:IconButton x:Name="ShuffleButton" Icon="{x:Static xd:XdIcons.Shuffle}" IsActive="True"
+                                       Clicked="ShuffleButton_Clicked"
+                                       xd:InstantToolTip.Text="Toggle (active)" xd:InstantToolTip.Placement="Below"/>
+                        <xd:IconButton Icon="{x:Static xd:XdIcons.Block}" IsEnabled="False"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- SegmentedControl -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="SegmentedControl" FontAttributes="Bold" TextColor="{DynamicResource Xd.Text}"/>
+                    <xd:SegmentedControl x:Name="Segments"/>
+                    <Label x:Name="SegmentChoice" TextColor="{DynamicResource Xd.TextSecondary}"/>
+                </VerticalStackLayout>
+
+                <!-- XdIcons -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="XdIcons" FontAttributes="Bold" TextColor="{DynamicResource Xd.Text}"/>
+                    <FlexLayout x:Name="IconList" Wrap="Wrap"/>
+                </VerticalStackLayout>
+
+                <!-- Colors -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="XdKeys (dynamic resources)" FontAttributes="Bold" TextColor="{DynamicResource Xd.Text}"/>
+                    <FlexLayout x:Name="ColorList" Wrap="Wrap"/>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- right rail: theme, then the accent color -->
+        <Grid Grid.Column="2" BackgroundColor="{DynamicResource Xd.PanelBackground}">
+            <VerticalStackLayout Spacing="10" Padding="7,14,7,0" VerticalOptions="Start">
+                <xd:RailChoiceGroup x:Name="ThemeGroup" ToolTipPlacement="Left" SelectedIndexChanged="ThemeGroup_SelectedIndexChanged">
+                    <xd:RailChoice Icon="{x:Static xd:XdIcons.Sun}" ToolTip="Light theme"/>
+                    <xd:RailChoice Icon="{x:Static xd:XdIcons.Moon}" ToolTip="Dark theme"/>
+                    <xd:RailChoice Icon="{x:Static xd:XdIcons.Monitor}" ToolTip="System theme"/>
+                </xd:RailChoiceGroup>
+
+                <BoxView HeightRequest="1" Margin="8,0" Color="{DynamicResource Xd.Border}"/>
+
+                <xd:NavRailButton HorizontalOptions="Center"
+                                  Icon="{x:Static xd:XdIcons.Palette}"
+                                  Clicked="AccentButton_Clicked"
+                                  xd:InstantToolTip.Text="Accent color"
+                                  xd:InstantToolTip.Placement="Left"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- status bar -->
+        <Grid Grid.Row="1" Grid.ColumnSpan="3" Padding="14,0" BackgroundColor="{DynamicResource Xd.PanelBackground}">
+            <Label x:Name="Status" VerticalOptions="Center" FontSize="12" TextColor="{DynamicResource Xd.TextSecondary}"/>
+        </Grid>
+
+        <xd:Popover x:Name="AccentPopover"
+                    Grid.RowSpan="2" Grid.ColumnSpan="3"
+                    PanelHorizontalOptions="End"
+                    PanelVerticalOptions="Start"
+                    PanelMargin="0,150,68,0"
+                    PanelWidth="264">
+            <xd:ColorPicker x:Name="AccentPicker" Title="Accent color"/>
+        </xd:Popover>
+
+        <xd:InstantToolTipHost Grid.RowSpan="2" Grid.ColumnSpan="3"/>
+    </Grid>
+</ContentPage>

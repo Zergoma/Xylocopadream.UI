@@ -33,8 +33,10 @@ if ($Bump) {
 $version = "$major.$minor.$patch"
 $projects = Get-ChildItem (Join-Path $PSScriptRoot 'src') -Recurse -Filter *.csproj
 foreach ($project in $projects) {
+    # a project may add a suffix to the version (e.g. 0.1.2-preview)
     $package = Join-Path $Feed "$($project.BaseName).$version.nupkg"
-    if (Test-Path $package) {
+    $suffixed = Join-Path $Feed "$($project.BaseName).$version-*.nupkg"
+    if ((Test-Path $package) -or (Test-Path $suffixed)) {
         throw "$package already exists. Run .\publish.ps1 -Bump to publish a new version."
     }
 }

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- net11.0 (no platform) lets the tests run without WinUI -->
+    <TargetFrameworks>net11.0;net11.0-windows10.0.19041.0</TargetFrameworks>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <Description>.NET MAUI controls inspired by JetBrains Rider: navigation rail, toggle groups, segmented control, icon buttons, instant tooltips, popover, color picker, theme and accent colors following light / dark.</Description>
+    <PackageTags>maui;theme;dark;rider;icons;controls</PackageTags>
+    <!-- built on a preview of MAUI: NuGet forbids a stable package depending on a preview -->
+    <Version>$(Version)-preview</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Xylocopadream.UI.Maui.Tests" />
+  </ItemGroup>
+</Project>
