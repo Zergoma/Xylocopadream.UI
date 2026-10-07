@@ -5,7 +5,7 @@
         x:Class="Xylocopadream.UI.Avalonia.Gallery.MainWindow"
         x:DataType="local:MainWindow"
         Title="Xylocopadream UI — Galerie Avalonia"
-        Width="1280" Height="860" WindowStartupLocation="CenterScreen">
+        Width="1280" Height="760" WindowStartupLocation="CenterScreen">
 
     <Window.Styles>
         <Style Selector="TextBlock.section">

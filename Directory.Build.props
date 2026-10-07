@@ -12,6 +12,10 @@
     <Authors>Xylocopadream</Authors>
     <Company>Xylocopadream</Company>
     <RepositoryUrl>https://github.com/Zergoma/Xylocopadream.UI</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Zergoma/Xylocopadream.UI</PackageProjectUrl>
+    <!-- debug symbols in a .snupkg, pushed with the package -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
