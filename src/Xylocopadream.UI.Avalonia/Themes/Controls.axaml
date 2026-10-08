@@ -34,7 +34,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="Path.icon.folder">
-        <Setter Property="Stroke" Value="#8FB4F8" />
+        <Setter Property="Stroke" Value="{DynamicResource Xd.FolderIcon}" />
     </Style>
     <Style Selector=":disabled Path.icon">
         <Setter Property="Opacity" Value="0.35" />
@@ -88,7 +88,47 @@
         <Setter Property="Background" Value="{DynamicResource Xd.Selected}" />
     </Style>
     <Style Selector="ToggleButton.stripe:checked Path.icon">
-        <Setter Property="Stroke" Value="#FFFFFF" />
+        <Setter Property="Stroke" Value="{DynamicResource Xd.IconOnSelected}" />
+    </Style>
+
+    <!-- RailChoiceGroup / ThemeSwitcher: white icon on the accent pill -->
+    <Style Selector="Button.rail-choice:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Xd.Hover}" />
+    </Style>
+    <Style Selector="Button.rail-choice.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.rail-choice.selected Path.icon">
+        <Setter Property="Stroke" Value="White" />
+    </Style>
+
+    <!-- ColorPicker presets keep their color under the pointer, with a ring -->
+    <Style Selector="Button.xd-preset:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{Binding $parent[Button].Background}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Xd.Text}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
+    <!-- Breadcrumb: no chevron before the first segment, the last one in bold -->
+    <Style Selector=":is(Control).xd-first Path.xd-crumb-chevron">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=":is(Control).xd-last Button.crumb">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- RadialMenu: bubbles, and the one the pointer points to -->
+    <Style Selector="Border.xd-radial-bubble">
+        <Setter Property="Background" Value="{DynamicResource Xd.PopupBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Xd.PopupBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.xd-radial-bubble.xd-radial-highlight">
+        <Setter Property="BorderBrush" Value="{DynamicResource Xd.Accent}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="Button.xd-radial-item">
+        <Setter Property="MinWidth" Value="120" />
     </Style>
 
     <!-- Item being dragged by a xd:Reorder handle -->
@@ -114,16 +154,16 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="MinHeight" Value="0" />
-        <Setter Property="Foreground" Value="#548AF7" />
+        <Setter Property="Foreground" Value="{DynamicResource Xd.Link}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#6E9CF8" />
+        <Setter Property="Foreground" Value="{DynamicResource Xd.LinkHover}" />
     </Style>
     <Style Selector="Button.link:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#6F737A" />
+        <Setter Property="Foreground" Value="{DynamicResource Xd.TextDisabled}" />
     </Style>
 
     <!-- ===== Inputs ===== -->
@@ -179,8 +219,8 @@
     <Style Selector="Border.error">
         <Setter Property="Padding" Value="10,8" />
         <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Background" Value="#3D2A2C" />
-        <Setter Property="BorderBrush" Value="#6E3A3E" />
+        <Setter Property="Background" Value="{DynamicResource Xd.ErrorBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Xd.ErrorBorder}" />
         <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Border.error > TextBlock">
@@ -195,7 +235,7 @@
         <Setter Property="CornerRadius" Value="4" />
     </Style>
     <Style Selector="ListBox.tiles ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#26FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource Xd.TileHover}" />
     </Style>
     <Style Selector="ListBox.tiles ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource Xd.SelectedInactive}" />
@@ -234,7 +274,7 @@
         <Setter Property="Opacity" Value="0.85" />
     </Style>
     <Style Selector="Border.chip-more">
-        <Setter Property="Background" Value="#43454A" />
+        <Setter Property="Background" Value="{DynamicResource Xd.ChipMore}" />
         <Setter Property="CornerRadius" Value="9" />
         <Setter Property="Padding" Value="6,1,6,2" />
         <Setter Property="Margin" Value="2" />

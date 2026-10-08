@@ -44,4 +44,9 @@
     <StreamGeometry x:Key="Xd.Icon.Eye">M1.5,8 C3.5,4.5 12.5,4.5 14.5,8 C12.5,11.5 3.5,11.5 1.5,8 Z M10,8 A2,2 0 1 1 6,8 A2,2 0 1 1 10,8</StreamGeometry>
     <StreamGeometry x:Key="Xd.Icon.EyeClosed">M1.5,8 C3.5,4.5 12.5,4.5 14.5,8 C12.5,11.5 3.5,11.5 1.5,8 Z M10,8 A2,2 0 1 1 6,8 A2,2 0 1 1 10,8 M2.5,13.5 L13.5,2.5</StreamGeometry>
     <StreamGeometry x:Key="Xd.Icon.Grip">M6,3.5 V4.5 M10,3.5 V4.5 M6,7.5 V8.5 M10,7.5 V8.5 M6,11.5 V12.5 M10,11.5 V12.5</StreamGeometry>
+
+    <!-- Theme: light, dark, following the system -->
+    <StreamGeometry x:Key="Xd.Icon.Sun">M10.5,8 A2.5,2.5 0 1 1 5.5,8 A2.5,2.5 0 1 1 10.5,8 M8,1.5 V3 M8,13 V14.5 M1.5,8 H3 M13,8 H14.5 M3.4,3.4 L4.5,4.5 M11.5,11.5 L12.6,12.6 M3.4,12.6 L4.5,11.5 M11.5,4.5 L12.6,3.4</StreamGeometry>
+    <StreamGeometry x:Key="Xd.Icon.Moon">M13.5,9.5 A6,6 0 1 1 6.5,2.5 A4.5,4.5 0 0 0 13.5,9.5 Z</StreamGeometry>
+    <StreamGeometry x:Key="Xd.Icon.Monitor">M1.5,2.5 H14.5 V11.5 H1.5 Z M8,11.5 V14 M5,14.5 H11</StreamGeometry>
 </ResourceDictionary>

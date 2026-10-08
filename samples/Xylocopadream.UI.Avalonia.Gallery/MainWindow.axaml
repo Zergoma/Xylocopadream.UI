@@ -58,11 +58,15 @@
 
         <!-- ===== Tool window stripe ===== -->
         <Border DockPanel.Dock="Left" Classes="panel" Width="40" Padding="0,6" BorderThickness="0,0,1,0">
-            <StackPanel Spacing="4" HorizontalAlignment="Center">
-                <ToggleButton x:Name="SectionsToggle" Classes="stripe" IsChecked="True" ToolTip.Tip="Sections">
-                    <Path Classes="icon" Data="{StaticResource Xd.Icon.Thumbnails}" />
-                </ToggleButton>
-            </StackPanel>
+            <DockPanel>
+                <!-- Theme: light, dark, system (bottom of the stripe, as in Rider) -->
+                <xd:ThemeSwitcher x:Name="ThemeChoice" DockPanel.Dock="Bottom" HorizontalAlignment="Center" />
+                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <ToggleButton x:Name="SectionsToggle" Classes="stripe" IsChecked="True" ToolTip.Tip="Sections">
+                        <Path Classes="icon" Data="{StaticResource Xd.Icon.Thumbnails}" />
+                    </ToggleButton>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <!-- ===== Sections tool window ===== -->
@@ -77,6 +81,7 @@
                 <ListBoxItem Content="Badges et chips" Tag="BadgesSection" />
                 <ListBoxItem Content="Filtre et ordre" Tag="ReorderSection" />
                 <ListBoxItem Content="Couleur" Tag="ColorSection" />
+                <ListBoxItem Content="Navigation" Tag="NavigationSection" />
                 <ListBoxItem Content="Listes" Tag="ListsSection" />
                 <ListBoxItem Content="Visionneuse" Tag="ViewerSection" />
                 <ListBoxItem Content="Dialogues" Tag="DialogsSection" />
@@ -266,6 +271,20 @@
                         <Border Classes="panel" CornerRadius="6" Padding="12" HorizontalAlignment="Left">
                             <xd:ColorPicker x:Name="Picker" Title="Couleur du texte" Presets="{Binding ColorPresets}"
                                             DefaultColor="#DFE1E5" ResetText="Normale" SelectedColor="#56A8F5" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Breadcrumb and radial menu -->
+                <Border x:Name="NavigationSection" Classes="section">
+                    <StackPanel Spacing="10">
+                        <TextBlock Classes="section" Text="Fil d'Ariane et menu radial" />
+                        <xd:Breadcrumb x:Name="Crumbs" ItemsSource="{Binding CrumbPath}" Command="{Binding CrumbCommand}" />
+                        <TextBlock Classes="secondary" Text="{Binding CrumbResult}" />
+                        <Border x:Name="RadialTarget" Classes="panel" CornerRadius="6" Padding="16" Width="420" Height="120"
+                                HorizontalAlignment="Left" PointerPressed="OnRadialTargetPressed">
+                            <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
+                                       Text="Clic droit ici : RadialMenu pose ses groupes en bulles sur un cercle à droite du clic, met en avant la bulle visée par la souris et la relie au clic." />
                         </Border>
                     </StackPanel>
                 </Border>

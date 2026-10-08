@@ -25,6 +25,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly IDialogService _dialogs;
     private string _dialogResult = "Résultat du dernier dialogue.";
     private string _filter = "tr";
+    private string _crumbResult = "Cliquez un segment du fil d’Ariane.";
 
     public MainWindow()
     {
@@ -90,6 +91,82 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    public IReadOnlyList<string> CrumbPath { get; } = ["Coffre", "Photos", "2026", "Vacances"];
+
+    /// <summary>Clicked breadcrumb segment, shown under it.</summary>
+    public System.Windows.Input.ICommand CrumbCommand => new GalleryCommand(item => CrumbResult = $"Segment cliqué : {item}");
+
+    public string CrumbResult
+    {
+        get => _crumbResult;
+        private set
+        {
+            _crumbResult = value;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>The radial menu open over the demo area, if any (for tests).</summary>
+    public Controls.RadialMenu? OpenRadialMenu { get; private set; }
+
+    private void OnRadialTargetPressed(object? sender, global::Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(RadialTarget).Properties.IsRightButtonPressed)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        ShowRadialMenu(e.GetPosition(RadialTarget));
+    }
+
+    /// <summary>Opens the demo radial menu at <paramref name="at"/> (in the demo area).</summary>
+    public void ShowRadialMenu(Point at)
+    {
+        Geometry? Icon(string key) => this.TryFindResource(key, ActualThemeVariant, out var value) ? value as Geometry : null;
+        void Done(string what) => CrumbResult = $"Menu radial : {what}";
+
+        OpenRadialMenu = Controls.RadialMenu.Show(
+            RadialTarget,
+            at,
+            [
+                new Controls.RadialMenuGroup
+                {
+                    Title = "Édition",
+                    Items =
+                    [
+                        new Controls.RadialMenuItem { Header = "Copier", Icon = Icon("Xd.Icon.Copy"), Action = () => Done("copier") },
+                        new Controls.RadialMenuItem { Header = "Couper", Action = () => Done("couper") },
+                        new Controls.RadialMenuItem { Header = "Coller", Action = () => Done("coller") },
+                    ],
+                },
+                new Controls.RadialMenuGroup
+                {
+                    Title = "Couleur",
+                    Background = new SolidColorBrush(Color.Parse("#3323324A")),
+                    Items =
+                    [
+                        new Controls.RadialMenuItem { Header = "Texte…", Action = () => Done("texte") },
+                        new Controls.RadialMenuItem { Header = "Fond…", Action = () => Done("fond") },
+                    ],
+                },
+                new Controls.RadialMenuGroup
+                {
+                    Items =
+                    [
+                        new Controls.RadialMenuItem
+                        {
+                            Header = "Supprimer",
+                            Icon = Icon("Xd.Icon.Delete"),
+                            Background = new SolidColorBrush(Color.Parse("#99C94F4F")),
+                            Action = () => Done("supprimer"),
+                        },
+                    ],
+                },
+            ],
+            new Controls.RadialMenuOptions { Avoid = new Rect(at.X - 40, at.Y - 10, 80, 20) });
+    }
+
     private async void OnPrompt(object? sender, RoutedEventArgs e)
     {
         var text = await _dialogs.PromptAsync("Nouveau dossier", "Nom du dossier :", "Nouveau dossier", "Créer");
@@ -137,4 +214,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         return bitmap;
     }
+}
+
+/// <summary>A command running a delegate (the gallery has no MVVM library).</summary>
+internal sealed class GalleryCommand(Action<object?> execute) : System.Windows.Input.ICommand
+{
+    public event EventHandler? CanExecuteChanged
+    {
+        add { }
+        remove { }
+    }
+
+    public bool CanExecute(object? parameter) => true;
+
+    public void Execute(object? parameter) => execute(parameter);
 }

@@ -257,6 +257,97 @@ public sealed class LibraryTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void Theme_switcher_changes_the_whole_palette()
+    {
+        var app = global::Avalonia.Application.Current!;
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var switcher = window.FindControl<ThemeSwitcher>("ThemeChoice")!;
+        Assert.Equal(global::Avalonia.Styling.ThemeVariant.Dark, switcher.Variant); // the gallery starts dark
+
+        try
+        {
+            switcher.SelectedIndex = 0; // light
+            Render();
+            Assert.Equal(global::Avalonia.Styling.ThemeVariant.Light, app.RequestedThemeVariant);
+            Assert.True(window.TryFindResource("Xd.EditorBackground", window.ActualThemeVariant, out var light));
+            Assert.Equal(Colors.White, ((ISolidColorBrush)light!).Color);
+            Save(window, "6-gallery-light.png");
+
+            switcher.Variant = global::Avalonia.Styling.ThemeVariant.Default;
+            Assert.Equal(2, switcher.SelectedIndex);
+        }
+        finally
+        {
+            switcher.Variant = global::Avalonia.Styling.ThemeVariant.Dark;
+            window.Close();
+        }
+
+        Assert.Equal(global::Avalonia.Styling.ThemeVariant.Dark, app.RequestedThemeVariant);
+    }
+
+    [AvaloniaFact]
+    public void Breadcrumb_runs_its_command_with_the_clicked_segment()
+    {
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var crumbs = window.FindControl<Breadcrumb>("Crumbs")!;
+        crumbs.BringIntoView();
+        Render();
+
+        var segments = crumbs.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("crumb")).ToList();
+        Assert.Equal(4, segments.Count);
+        Assert.Equal(FontWeight.SemiBold, segments[^1].FontWeight);
+        Assert.NotEqual(FontWeight.SemiBold, segments[0].FontWeight);
+        segments[1].RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("Segment cliqué : Photos", window.CrumbResult);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void Radial_menu_lays_its_groups_beside_the_click_and_runs_an_action()
+    {
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var target = window.FindControl<Border>("RadialTarget")!;
+        target.BringIntoView();
+        Render();
+
+        var click = new Point(120, 60);
+        window.ShowRadialMenu(click);
+        var menu = window.OpenRadialMenu!;
+        Render();
+        var origin = target.TranslatePoint(click, window)!.Value;
+
+        // Three bubbles, right of the click and of the area to avoid, not overlapping.
+        Assert.Equal(3, menu.Bubbles.Count);
+        Assert.All(menu.Bubbles, b => Assert.True(b.Bounds.Left > origin.X + 40, $"{b.Bounds} not right of {origin}"));
+        for (var i = 0; i < menu.Bubbles.Count; i++)
+        {
+            for (var j = i + 1; j < menu.Bubbles.Count; j++)
+            {
+                Assert.False(menu.Bubbles[i].Bounds.Intersects(menu.Bubbles[j].Bounds), "bubbles overlap");
+            }
+        }
+
+        // Pointing at a bubble highlights it.
+        var last = menu.Bubbles[^1];
+        menu.PointTo(origin + ((last.Bounds.Center - origin) * 0.5));
+        Assert.Same(last.Bubble, menu.Highlighted);
+        DispatcherTimer.RunOnce(() => { }, TimeSpan.Zero);
+        Thread.Sleep(250); // let the appearing animation end
+        Render();
+        Save(window, "7-gallery-radial-menu.png");
+
+        // An item runs its action and closes the menu.
+        var copy = menu.Bubbles[0].Bubble.GetVisualDescendants().OfType<Button>().First();
+        copy.RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal("Menu radial : copier", window.CrumbResult);
+        Assert.False(menu.IsOpen);
+        window.Close();
+    }
+
     private static void Render()
     {
         Dispatcher.UIThread.RunJobs();
