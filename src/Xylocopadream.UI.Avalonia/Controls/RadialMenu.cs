@@ -278,6 +278,9 @@ public sealed class RadialMenu
             };
             button.Classes.Add("tool");
             button.Classes.Add("xd-radial-item");
+
+            // The menu leaves the focus where it was (e.g. in the text whose selection it acts on).
+            button.Focusable = false;
             if (item.Background is { } background)
             {
                 button.Background = background;
