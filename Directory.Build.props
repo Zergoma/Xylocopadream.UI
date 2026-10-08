@@ -8,7 +8,7 @@
     <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
 
     <!-- Bumped by publish.ps1 -Bump: NuGet caches packages by version, so every publish needs a new one. -->
-    <Version>0.1.7</Version>
+    <Version>0.1.8</Version>
     <Authors>Xylocopadream</Authors>
     <Company>Xylocopadream</Company>
     <RepositoryUrl>https://github.com/Zergoma/Xylocopadream.UI</RepositoryUrl>
