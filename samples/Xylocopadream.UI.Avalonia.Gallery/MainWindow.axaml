@@ -375,6 +375,7 @@
                             <Button Content="Saisie…" Click="OnPrompt" Margin="0,0,8,0" />
                             <Button Content="Confirmation…" Click="OnConfirm" Margin="0,0,8,0" />
                             <Button Content="Suppression…" Click="OnConfirmDestructive" Margin="0,0,8,0" />
+                            <Button x:Name="ChoiceDemo" Content="Choix…" Click="OnChoose" Margin="0,0,8,0" />
                             <Button Content="Erreur…" Click="OnError" />
                         </WrapPanel>
                         <TextBlock Text="{Binding DialogResult}" Classes="secondary" />

@@ -481,6 +481,24 @@ public sealed class LibraryTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public async Task Choice_window_returns_the_index_of_the_answer()
+    {
+        var owner = new Window();
+        owner.Show();
+
+        var dialog = new ChoiceWindow("Fermer", "Modifications non enregistrées.", ["Enregistrer", "Ne pas enregistrer", "Annuler"], destructiveIndex: 1, cancelIndex: 2);
+        var result = dialog.ShowDialog<int?>(owner);
+        dialog.Choose(1);
+        Assert.Equal(1, await result);
+
+        var closed = new ChoiceWindow("Fermer", "…", ["OK", "Annuler"]);
+        var none = closed.ShowDialog<int?>(owner);
+        closed.Close();
+        Assert.Null(await none);
+        owner.Close();
+    }
+
     private static void Render()
     {
         Dispatcher.UIThread.RunJobs();

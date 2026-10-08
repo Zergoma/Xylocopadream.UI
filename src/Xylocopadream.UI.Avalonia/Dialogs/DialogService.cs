@@ -13,6 +13,10 @@ public interface IDialogService
 
     Task ShowErrorAsync(string title, string message);
 
+    /// <summary>A question with several answers.</summary>
+    /// <returns>The index of the chosen answer, -1 when the dialog is closed without an answer.</returns>
+    Task<int> ChooseAsync(string title, string message, IReadOnlyList<string> choices, int defaultIndex = 0, int? destructiveIndex = null, int? cancelIndex = null);
+
     /// <returns>Local path of the chosen folder, or null.</returns>
     Task<string?> PickFolderAsync(string title);
 
@@ -39,6 +43,9 @@ public class DialogService(Func<Window?> owner) : IDialogService
 
     public Task ShowErrorAsync(string title, string message) =>
         ShowDialogAsync<string?>(new PromptWindow(title, message, "OK", showCancel: false, isDestructive: true));
+
+    public async Task<int> ChooseAsync(string title, string message, IReadOnlyList<string> choices, int defaultIndex = 0, int? destructiveIndex = null, int? cancelIndex = null) =>
+        await ShowDialogAsync<int?>(new ChoiceWindow(title, message, choices, defaultIndex, destructiveIndex, cancelIndex)) ?? -1;
 
     public async Task<string?> PickFolderAsync(string title)
     {

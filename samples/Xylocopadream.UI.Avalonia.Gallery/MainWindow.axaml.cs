@@ -184,6 +184,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             ? "Supprimé."
             : "Annulé.";
 
+    private async void OnChoose(object? sender, RoutedEventArgs e)
+    {
+        string[] choices = ["Enregistrer", "Ne pas enregistrer", "Annuler"];
+        var index = await _dialogs.ChooseAsync("Fermer", "« notes.txt » a des modifications non enregistrées.", choices, destructiveIndex: 1, cancelIndex: 2);
+        DialogResult = index >= 0 ? $"Choix : {choices[index]}" : "Fermé sans choisir.";
+    }
+
     private async void OnError(object? sender, RoutedEventArgs e)
     {
         await _dialogs.ShowErrorAsync("Erreur", "Accès refusé à cet emplacement.");
