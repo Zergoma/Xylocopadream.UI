@@ -357,6 +357,49 @@ public sealed class LibraryTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void Dragging_over_a_taller_item_swaps_once_past_its_middle()
+    {
+        var items = new System.Collections.ObjectModel.ObservableCollection<string>(["court", "très grand", "fin"]);
+        var list = new ItemsControl
+        {
+            ItemsSource = items,
+            ItemTemplate = new global::Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => new Border
+            {
+                Height = text == "très grand" ? 90 : 30,
+                Background = Brushes.DimGray,
+                Child = new Border { Width = 20, Background = Brushes.Transparent, HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Left, [Reorder.IsHandleProperty] = true },
+            }),
+            [Reorder.AnimateProperty] = true,
+        };
+        var window = new Window { Width = 300, Height = 300, Content = list };
+        window.Show();
+        Render();
+
+        var tall = list.ContainerFromIndex(1)!;
+        var top = list.TranslatePoint(new Point(10, 15), window)!.Value;
+        window.MouseDown(top, MouseButton.Left);
+
+        // In the upper half of the tall item: no swap yet.
+        window.MouseMove(list.TranslatePoint(new Point(10, tall.Bounds.Top + 20), window)!.Value);
+        Render();
+        Assert.Equal(["court", "très grand", "fin"], items);
+
+        // Past its middle: one swap, and moving a little more there does not swap back.
+        var below = list.TranslatePoint(new Point(10, tall.Bounds.Top + 60), window)!.Value;
+        window.MouseMove(below);
+        Render();
+        Assert.Equal(["très grand", "court", "fin"], items);
+        window.MouseMove(below + new Vector(0, 2));
+        Render();
+        window.MouseMove(below + new Vector(0, 4));
+        Render();
+        Assert.Equal(["très grand", "court", "fin"], items);
+
+        window.MouseUp(below, MouseButton.Left);
+        window.Close();
+    }
+
     private static void Render()
     {
         Dispatcher.UIThread.RunJobs();

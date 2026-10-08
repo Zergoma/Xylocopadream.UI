@@ -169,6 +169,19 @@ public static class Reorder
 
             if (target == _owner)
             {
+                // Past the middle of the item only: once swapped, items of different heights would otherwise leave the
+                // pointer over the other one, and swap them back and forth.
+                // In the panel, with the layout bounds: a sliding item is drawn elsewhere (render transform) for a while.
+                if (target.ContainerFromIndex(index) is { } over && target.ItemsPanelRoot is { } panel)
+                {
+                    var y = e.GetPosition(panel).Y;
+                    var middle = over.Bounds.Top + (over.Bounds.Height / 2);
+                    if ((index > current && y < middle) || (index < current && y > middle))
+                    {
+                        return;
+                    }
+                }
+
                 Move(from, current, Math.Min(index, from.Count - 1));
                 return;
             }
