@@ -204,7 +204,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel Background="Transparent">
-                    <Border Width="1" HorizontalAlignment="Center" Background="{DynamicResource Xd.Separator}" />
+                    <Border Width="1" HorizontalAlignment="Center" Background="{DynamicResource Xd.Border}" />
                 </Panel>
             </ControlTemplate>
         </Setter>
