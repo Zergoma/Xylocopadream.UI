@@ -192,6 +192,33 @@ public sealed class LibraryTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void Dragging_into_a_list_of_the_same_group_moves_the_item_there()
+    {
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var list = window.FindControl<ItemsControl>("ReorderList")!;
+        var other = window.FindControl<ItemsControl>("OtherList")!;
+        list.BringIntoView();
+        Render();
+
+        var grip = list.GetRealizedContainers().First().GetVisualDescendants().OfType<Border>().First(b => Reorder.GetIsHandle(b));
+        var start = grip.TranslatePoint(new Point(grip.Bounds.Width / 2, grip.Bounds.Height / 2), window)!.Value;
+        var second = other.GetRealizedContainers().ElementAt(1);
+        var target = second.TranslatePoint(new Point(20, second.Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(start, MouseButton.Left);
+        window.MouseMove(target);
+        Render();
+        window.MouseUp(target, MouseButton.Left);
+        Render();
+
+        Assert.Equal(["triste", "pomme", "strate", "poire"], window.Words);
+        Assert.Equal(["trèfle", "attrise", "cerise"], window.OtherWords);
+        Save(window, "4-gallery-reorder-between-lists.png");
+        window.Close();
+    }
+
     private static void Render()
     {
         Dispatcher.UIThread.RunJobs();

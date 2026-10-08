@@ -17,7 +17,9 @@ namespace Xylocopadream.UI.Avalonia.Controls;
 /// <item><c>xd:Reorder.Animate="True"</c> on the items control makes items slide to their new place when the
 /// collection changes (move, insert, remove), instead of jumping;</item>
 /// <item><c>xd:Reorder.IsHandle="True"</c> on a control of the item template (a grip icon) lets the user drag the
-/// item up or down. The items source must be a list; an <c>ObservableCollection</c> is moved in place.</item>
+/// item up or down. The items source must be a list; an <c>ObservableCollection</c> is moved in place;</item>
+/// <item><c>xd:Reorder.Group="name"</c> on several items controls lets an item be dragged from one to another
+/// (e.g. between the sections of a form). Their sources must accept each other's items.</item>
 /// </list>
 /// The dragged item's container gets the <c>xd-dragging</c> class.
 /// </summary>
@@ -28,6 +30,9 @@ public static class Reorder
 
     public static readonly AttachedProperty<bool> IsHandleProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("IsHandle", typeof(Reorder));
+
+    public static readonly AttachedProperty<string?> GroupProperty =
+        AvaloniaProperty.RegisterAttached<ItemsControl, string?>("Group", typeof(Reorder));
 
     /// <summary>Duration of the slide animation.</summary>
     public static TimeSpan AnimationDuration { get; set; } = TimeSpan.FromMilliseconds(180);
@@ -70,6 +75,10 @@ public static class Reorder
     public static bool GetIsHandle(Control control) => control.GetValue(IsHandleProperty);
 
     public static void SetIsHandle(Control control, bool value) => control.SetValue(IsHandleProperty, value);
+
+    public static string? GetGroup(ItemsControl control) => control.GetValue(GroupProperty);
+
+    public static void SetGroup(ItemsControl control, string? value) => control.SetValue(GroupProperty, value);
 
     /// <summary>Moves an item of <paramref name="items"/>: in place when the list has a <c>Move(int, int)</c>
     /// method (ObservableCollection), otherwise by removing and inserting it.</summary>
@@ -124,59 +133,109 @@ public static class Reorder
         return null;
     }
 
-    private sealed class Drag(ItemsControl itemsControl, object item, Control container)
+    private sealed class Drag(ItemsControl source, object item, Control container)
     {
+        private readonly ItemsControl _source = source;
+        private ItemsControl _owner = source;
         private Control _container = container;
 
         public void Start(PointerPressedEventArgs e)
         {
-            itemsControl.AddHandler(InputElement.PointerMovedEvent, OnMoved);
-            itemsControl.AddHandler(InputElement.PointerReleasedEvent, OnReleased);
-            itemsControl.AddHandler(InputElement.PointerCaptureLostEvent, OnCaptureLost);
-            itemsControl.LayoutUpdated += OnLayoutUpdated;
+            // The source keeps the capture even when the item moves to another list.
+            _source.AddHandler(InputElement.PointerMovedEvent, OnMoved);
+            _source.AddHandler(InputElement.PointerReleasedEvent, OnReleased);
+            _source.AddHandler(InputElement.PointerCaptureLostEvent, OnCaptureLost);
+            _source.LayoutUpdated += OnLayoutUpdated;
             _container.Classes.Add("xd-dragging");
-            e.Pointer.Capture(itemsControl);
+            e.Pointer.Capture(_source);
         }
 
         private void OnMoved(object? sender, PointerEventArgs e)
         {
-            if (itemsControl.ItemsSource is not IList items || itemsControl.ItemsPanelRoot is not { } panel)
+            if (TopLevel.GetTopLevel(_source) is not { } root
+                || root.InputHitTest(e.GetPosition(root)) is not Visual hit
+                || FindTarget(hit) is not var (target, index)
+                || _owner.ItemsSource is not IList from
+                || target.ItemsSource is not IList to)
             {
                 return;
             }
 
-            var y = e.GetPosition(panel).Y;
-            var target = itemsControl.GetRealizedContainers()
-                .Where(c => c.IsVisible)
-                .FirstOrDefault(c => y >= c.Bounds.Top && y < c.Bounds.Bottom);
-            if (target is null || target == _container)
+            var current = from.IndexOf(item);
+            if (current < 0)
             {
                 return;
             }
 
-            var from = items.IndexOf(item);
-            var to = itemsControl.IndexFromContainer(target);
-            if (from >= 0 && to >= 0)
+            if (target == _owner)
             {
-                Move(items, from, to);
+                Move(from, current, Math.Min(index, from.Count - 1));
+                return;
+            }
+
+            try
+            {
+                from.RemoveAt(current);
+                to.Insert(Math.Min(index, to.Count), item);
+                _owner = target;
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidCastException or NotSupportedException)
+            {
+                // The other list does not take this kind of item: put it back.
+                if (!from.Contains(item))
+                {
+                    from.Insert(current, item);
+                }
             }
         }
+
+        /// <summary>Where the pointer is: an item container of the current list or of a list of the same
+        /// <see cref="GroupProperty"/> (index of that item), or the empty part of such a list (its end).</summary>
+        private (ItemsControl Target, int Index)? FindTarget(Visual hit)
+        {
+            var group = GetGroup(_owner);
+            for (var visual = hit; visual is not null; visual = visual.GetVisualParent())
+            {
+                if (visual == _container)
+                {
+                    return null;
+                }
+
+                if (visual is Control control
+                    && ItemsControl.ItemsControlFromItemContainer(control) is { } list
+                    && Accepts(list, group))
+                {
+                    return (list, list.IndexFromContainer(control));
+                }
+
+                if (visual is ItemsControl other && Accepts(other, group))
+                {
+                    // Between rows: nothing to do; an empty list of the group: its end.
+                    return other != _owner && !other.GetRealizedContainers().Any(c => c.IsVisible) ? (other, int.MaxValue) : null;
+                }
+            }
+
+            return null;
+        }
+
+        private bool Accepts(ItemsControl list, string? group) =>
+            list == _owner || (group is not null && GetGroup(list) == group);
 
         private void OnReleased(object? sender, PointerReleasedEventArgs e) => e.Pointer.Capture(null);
 
         private void OnCaptureLost(object? sender, PointerCaptureLostEventArgs e)
         {
-            itemsControl.RemoveHandler(InputElement.PointerMovedEvent, OnMoved);
-            itemsControl.RemoveHandler(InputElement.PointerReleasedEvent, OnReleased);
-            itemsControl.RemoveHandler(InputElement.PointerCaptureLostEvent, OnCaptureLost);
-            itemsControl.LayoutUpdated -= OnLayoutUpdated;
+            _source.RemoveHandler(InputElement.PointerMovedEvent, OnMoved);
+            _source.RemoveHandler(InputElement.PointerReleasedEvent, OnReleased);
+            _source.RemoveHandler(InputElement.PointerCaptureLostEvent, OnCaptureLost);
+            _source.LayoutUpdated -= OnLayoutUpdated;
             _container.Classes.Remove("xd-dragging");
         }
 
-        /// <summary>A list without Move recreates the container: keep the class on the current one.</summary>
+        /// <summary>Moving to another list (or a list without Move) recreates the container: keep the class on it.</summary>
         private void OnLayoutUpdated(object? sender, EventArgs e)
         {
-            if (itemsControl.ContainerFromItem(item) is { } current && current != _container)
+            if (_owner.ContainerFromItem(item) is { } current && current != _container)
             {
                 _container.Classes.Remove("xd-dragging");
                 _container = current;

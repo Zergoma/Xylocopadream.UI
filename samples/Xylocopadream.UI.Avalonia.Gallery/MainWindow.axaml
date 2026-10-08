@@ -231,10 +231,10 @@
                     <StackPanel Spacing="10" MaxWidth="460" HorizontalAlignment="Left">
                         <TextBlock Classes="section" Text="Filtre et réordonnancement" />
                         <TextBlock Classes="secondary" TextWrapping="Wrap"
-                                   Text="HighlightedTextBlock colore ce qui correspond au filtre ; xd:Reorder déplace les lignes par la poignée, en les animant." />
+                                   Text="HighlightedTextBlock colore ce qui correspond au filtre ; xd:Reorder déplace les lignes par la poignée, en les animant, et d’une liste à l’autre du même groupe." />
                         <TextBox Text="{Binding Filter}" PlaceholderText="Filtrer (ex. tr)" />
-                        <ItemsControl x:Name="ReorderList" ItemsSource="{Binding Words}" xd:Reorder.Animate="True">
-                            <ItemsControl.ItemTemplate>
+                        <Grid ColumnDefinitions="*,12,*">
+                            <Grid.DataTemplates>
                                 <DataTemplate x:DataType="x:String">
                                     <Border Background="{DynamicResource Xd.PanelBackground}" CornerRadius="4" Padding="4,6" Margin="0,1">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -242,12 +242,17 @@
                                                 <Path Classes="icon" Data="{StaticResource Xd.Icon.Grip}" />
                                             </Border>
                                             <xd:HighlightedTextBlock SourceText="{Binding}" VerticalAlignment="Center"
-                                                                     Highlight="{Binding $parent[ItemsControl].((local:MainWindow)DataContext).Filter}" />
+                                                                     Highlight="{Binding $parent[Window].((local:MainWindow)DataContext).Filter}" />
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            </Grid.DataTemplates>
+                            <!-- Same group: lines can be dragged from one list to the other -->
+                            <ItemsControl x:Name="ReorderList" ItemsSource="{Binding Words}" xd:Reorder.Animate="True"
+                                          xd:Reorder.Group="words" Background="Transparent" MinHeight="40" />
+                            <ItemsControl x:Name="OtherList" Grid.Column="2" ItemsSource="{Binding OtherWords}" xd:Reorder.Animate="True"
+                                          xd:Reorder.Group="words" Background="Transparent" MinHeight="40" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 

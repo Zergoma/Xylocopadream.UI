@@ -49,6 +49,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     /// <summary>Reordered by the grips of the "Filtre et ordre" section.</summary>
     public System.Collections.ObjectModel.ObservableCollection<string> Words { get; } = ["attrise", "triste", "pomme", "strate", "poire"];
 
+    /// <summary>Second list of the same reorder group: lines move between both.</summary>
+    public System.Collections.ObjectModel.ObservableCollection<string> OtherWords { get; } = ["trèfle", "cerise"];
+
     public string Filter
     {
         get => _filter;
