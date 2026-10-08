@@ -61,7 +61,7 @@ public sealed class RadialMenuOptions
     /// the circle goes beside it, not over it.</summary>
     public Rect? Avoid { get; init; }
 
-    /// <summary>Highlights the bubble the pointer points to, seen from the click.</summary>
+    /// <summary>Highlights the bubble the pointer is in, or points to seen from the click.</summary>
     public bool HighlightByAngle { get; init; } = true;
 
     /// <summary>With <see cref="HighlightByAngle"/>: a translucent shape joining the click (or <see cref="Avoid"/>) to
@@ -177,9 +177,10 @@ public sealed class RadialMenu
             return;
         }
 
+        // Inside a bubble: that bubble; elsewhere: the bubble in the direction of the pointer, seen from the click.
         var vector = point - _origin;
-        Border? target = null;
-        if (Math.Sqrt((vector.X * vector.X) + (vector.Y * vector.Y)) > 12)
+        var target = _bubbles.FirstOrDefault(b => b.Bounds.Contains(point)).Bubble;
+        if (target is null && Math.Sqrt((vector.X * vector.X) + (vector.Y * vector.Y)) > 12)
         {
             var angle = Math.Atan2(vector.Y, vector.X);
             target = _bubbles.MinBy(b => AngleBetween(b.Angle, angle)).Bubble;
@@ -315,52 +316,79 @@ public sealed class RadialMenu
     }
 
     /// <summary>
-    /// Bubbles in turn on an arc of the circle, the arc facing the click; the circle beside the click and
-    /// <see cref="RadialMenuOptions.Avoid"/> (to their right, or to their left when there is no room).
+    /// Bubbles on a circle beside the click and <see cref="RadialMenuOptions.Avoid"/> (to their right, or to their
+    /// left when there is no room): equally spaced when they fit (the circle grows a little for that), packed one
+    /// after the other otherwise; from 0° (to the right of the center) clockwise, turned when some would leave the window.
     /// </summary>
     private void Place(IReadOnlyList<Border> bubbles)
     {
-        var sizes = bubbles.Select(b => b.DesiredSize).ToList();
-        var reach = sizes.Select(s => Math.Sqrt((s.Width * s.Width) + (s.Height * s.Height)) / 2).ToList();
-        var maxHalfWidth = sizes.Count == 0 ? 0 : sizes.Max(s => s.Width) / 2;
-
-        // Grow the circle until the bubbles fit in 300° without overlapping.
-        var radius = Math.Max(_options.MinRadius, reach.DefaultIfEmpty(0).Max() + _options.Gap);
-        double[] steps;
-        while (true)
+        var count = bubbles.Count;
+        if (count == 0)
         {
-            steps = Enumerable.Range(1, Math.Max(0, bubbles.Count - 1))
-                .Select(i => 2 * Math.Asin(Math.Min(1, (reach[i - 1] + reach[i] + _options.Gap) / (2 * radius))))
-                .ToArray();
-            if (steps.Sum() <= Math.PI * 300 / 180 || radius > 2000)
-            {
-                break;
-            }
-
-            radius *= 1.2;
+            return;
         }
 
-        var span = _options.Margin + (2 * radius) + (2 * maxHalfWidth);
-        var toRight = _avoid.Right + span <= _layer.Width || _avoid.Left - span < 0;
-        var center = toRight
-            ? new Point(_avoid.Right + _options.Margin + radius + maxHalfWidth, _origin.Y)
-            : new Point(_avoid.Left - _options.Margin - radius - maxHalfWidth, _origin.Y);
-        var facing = toRight ? Math.PI : 0;
-        var angle = facing - (steps.Sum() / 2);
+        var sizes = bubbles.Select(b => b.DesiredSize).ToList();
+        var reach = sizes.Select(s => Math.Sqrt((s.Width * s.Width) + (s.Height * s.Height)) / 2).ToList();
+        var maxHalfWidth = sizes.Max(s => s.Width) / 2;
+        var gap = _options.Gap;
 
-        for (var i = 0; i < bubbles.Count; i++)
+        // Angle needed between two neighbors on a circle of this radius.
+        double Step(int i, int j, double r) => 2 * Math.Asin(Math.Min(1, (reach[i] + reach[j] + gap) / (2 * r)));
+
+        var radius = Math.Max(_options.MinRadius, reach.Max() + gap);
+        double[] angles;
+        bool FitsEqually(double r) => count == 1 || Enumerable.Range(0, count).All(i => Step(i, (i + 1) % count, r) <= 2 * Math.PI / count);
+        var equalRadius = radius;
+        while (!FitsEqually(equalRadius) && equalRadius < radius * 2.5)
         {
-            if (i > 0)
+            equalRadius *= 1.1;
+        }
+
+        if (FitsEqually(equalRadius))
+        {
+            radius = equalRadius;
+            angles = Enumerable.Range(0, count).Select(i => i * 2 * Math.PI / count).ToArray();
+        }
+        else
+        {
+            while (Enumerable.Range(0, count).Sum(i => Step(i, (i + 1) % count, radius)) > 2 * Math.PI && radius < 2000)
             {
-                angle += steps[i - 1];
+                radius *= 1.1;
             }
 
-            var size = sizes[i];
-            var x = Math.Clamp(center.X + (radius * Math.Cos(angle)) - (size.Width / 2), 4, Math.Max(4, _layer.Width - size.Width - 4));
-            var y = Math.Clamp(center.Y + (radius * Math.Sin(angle)) - (size.Height / 2), 4, Math.Max(4, _layer.Height - size.Height - 4));
-            var bounds = new Rect(new Point(x, y), size);
-            Canvas.SetLeft(bubbles[i], x);
-            Canvas.SetTop(bubbles[i], y);
+            angles = new double[count];
+            for (var i = 1; i < count; i++)
+            {
+                angles[i] = angles[i - 1] + Step(i - 1, i, radius);
+            }
+        }
+
+        Rect[] Layout(Point center, double turn) => Enumerable.Range(0, count)
+            .Select(i => new Rect(
+                new Point(center.X + (radius * Math.Cos(angles[i] + turn)) - (sizes[i].Width / 2), center.Y + (radius * Math.Sin(angles[i] + turn)) - (sizes[i].Height / 2)),
+                sizes[i]))
+            .ToArray();
+        bool Visible(Rect[] rects) => rects.All(r => r.Left >= 4 && r.Top >= 4 && r.Right <= _layer.Width - 4 && r.Bottom <= _layer.Height - 4);
+
+        var right = new Point(_avoid.Right + _options.Margin + radius + maxHalfWidth, _origin.Y);
+        var left = new Point(_avoid.Left - _options.Margin - radius - maxHalfWidth, _origin.Y);
+        var placed = new[] { right, left }
+            .SelectMany(center => Enumerable.Range(0, 24).Select(k => Layout(center, k * Math.PI / 12)))
+            .FirstOrDefault(Visible);
+
+        // Nowhere fully visible: to the right, kept in the window.
+        placed ??= Layout(right, 0)
+            .Select(r => new Rect(
+                new Point(Math.Clamp(r.X, 4, Math.Max(4, _layer.Width - r.Width - 4)), Math.Clamp(r.Y, 4, Math.Max(4, _layer.Height - r.Height - 4))),
+                r.Size))
+            .ToArray();
+
+        for (var i = 0; i < count; i++)
+        {
+            var bounds = placed[i];
+            Canvas.SetLeft(bubbles[i], bounds.X);
+            Canvas.SetTop(bubbles[i], bounds.Y);
             bubbles[i].RenderTransform = FromOrigin(bounds);
             _bubbles.Add((bubbles[i], bounds, Math.Atan2(bounds.Center.Y - _origin.Y, bounds.Center.X - _origin.X)));
         }

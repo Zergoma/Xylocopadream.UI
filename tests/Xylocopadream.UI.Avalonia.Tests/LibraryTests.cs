@@ -331,6 +331,15 @@ public sealed class LibraryTests
             }
         }
 
+        // Equally spaced from 0° (right of the circle's center), clockwise: the first one is the rightmost, at the click's height.
+        Assert.Equal(menu.Bubbles.Max(b => b.Bounds.Right), menu.Bubbles[0].Bounds.Right);
+        Assert.InRange(menu.Bubbles[0].Bounds.Center.Y - origin.Y, -1, 1);
+        Assert.True(menu.Bubbles[1].Bounds.Center.Y > origin.Y, "clockwise: the second one is below");
+
+        // The pointer in a bubble highlights that bubble.
+        menu.PointTo(menu.Bubbles[1].Bounds.Center);
+        Assert.Same(menu.Bubbles[1].Bubble, menu.Highlighted);
+
         // Pointing at a bubble highlights it.
         var last = menu.Bubbles[^1];
         menu.PointTo(origin + ((last.Bounds.Center - origin) * 0.5));

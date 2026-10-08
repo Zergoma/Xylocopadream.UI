@@ -130,6 +130,13 @@
     <Style Selector="Button.xd-radial-item">
         <Setter Property="MinWidth" Value="120" />
     </Style>
+    <!-- The bubble is highlighted; the item under the pointer only fades a little (it keeps its own background) -->
+    <Style Selector="Button.xd-radial-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{Binding $parent[Button].Background}" />
+    </Style>
+    <Style Selector="Button.xd-radial-item:pointerover">
+        <Setter Property="Opacity" Value="0.7" />
+    </Style>
 
     <!-- Item being dragged by a xd:Reorder handle -->
     <Style Selector=":is(Control).xd-dragging">
@@ -187,10 +194,24 @@
     </Style>
 
     <!-- 1 px separators between panels -->
+    <!-- Thin splitter: a 1 px line, but 7 px wide under the pointer so it is easy to grab -->
     <Style Selector="GridSplitter.thin">
-        <Setter Property="Background" Value="{DynamicResource Xd.Separator}" />
-        <Setter Property="MinWidth" Value="1" />
-        <Setter Property="Width" Value="1" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="MinWidth" Value="7" />
+        <Setter Property="Width" Value="7" />
+        <Setter Property="Margin" Value="-3,0" />
+        <Setter Property="ZIndex" Value="1" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel Background="Transparent">
+                    <Border Width="1" HorizontalAlignment="Center" Background="{DynamicResource Xd.Separator}" />
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="GridSplitter.thin:pointerover /template/ Border">
+        <Setter Property="Width" Value="3" />
+        <Setter Property="Background" Value="{DynamicResource Xd.Accent}" />
     </Style>
 
     <!-- Vertical separator between groups of toolbar buttons -->
