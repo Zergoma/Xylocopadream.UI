@@ -26,8 +26,8 @@
     <SolidColorBrush x:Key="Xd.Danger" Color="#DB5C5C" />
     <SolidColorBrush x:Key="Xd.DropTarget" Color="#3574F0" Opacity="0.35" />
     <!-- Search matches (HighlightedTextBlock), like Rider's find results -->
-    <SolidColorBrush x:Key="Xd.Highlight" Color="#5C4A16" />
-    <SolidColorBrush x:Key="Xd.HighlightText" Color="#FFD866" />
+    <SolidColorBrush x:Key="Xd.Highlight" Color="#D9A93B" />
+    <SolidColorBrush x:Key="Xd.HighlightText" Color="#1E1F22" />
 
     <!-- Text and icons -->
     <SolidColorBrush x:Key="Xd.Text" Color="#DFE1E5" />
