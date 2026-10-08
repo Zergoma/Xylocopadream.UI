@@ -219,6 +219,44 @@ public sealed class LibraryTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void Color_picker_takes_presets_hex_codes_shades_and_reset()
+    {
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var picker = window.FindControl<ColorPicker>("Picker")!;
+        picker.BringIntoView();
+        Render();
+        Assert.Equal("#56A8F5", picker.HexBox.Text);
+
+        // A preset
+        var red = picker.GetVisualDescendants().OfType<Button>().First(b => b.Tag is ColorPreset { Name: "Rouge" });
+        red.RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(Color.Parse("#F75464"), picker.SelectedColor);
+        Assert.Equal("#F75464", picker.HexBox.Text);
+
+        // A typed code (short form too)
+        picker.HexBox.Text = "#0f0";
+        Assert.Equal(Colors.Lime, picker.SelectedColor);
+
+        // A click on the shade square: top right is the pure hue
+        var square = picker.GetVisualDescendants().OfType<Grid>().First(g => g.Height == 130);
+        var topRight = square.TranslatePoint(new Point(square.Bounds.Width - 1, 1), window)!.Value;
+        window.MouseDown(topRight, MouseButton.Left);
+        window.MouseUp(topRight, MouseButton.Left);
+        var (hue, saturation, value) = XdColorMath.HexToHsv(XdColorMath.ToHex(picker.SelectedColor));
+        Assert.InRange(hue, 115, 125);
+        Assert.True(saturation > 0.95 && value > 0.95);
+        Render();
+        Save(window, "5-gallery-color-picker.png");
+
+        // Back to the default
+        picker.GetVisualDescendants().OfType<Button>().Single(b => Equals(b.Content, "Normale"))
+            .RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(Color.Parse("#DFE1E5"), picker.SelectedColor);
+        window.Close();
+    }
+
     private static void Render()
     {
         Dispatcher.UIThread.RunJobs();

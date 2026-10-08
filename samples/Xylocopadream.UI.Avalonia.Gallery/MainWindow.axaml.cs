@@ -49,6 +49,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     /// <summary>Reordered by the grips of the "Filtre et ordre" section.</summary>
     public System.Collections.ObjectModel.ObservableCollection<string> Words { get; } = ["attrise", "triste", "pomme", "strate", "poire"];
 
+    public IReadOnlyList<Controls.ColorPreset> ColorPresets { get; } =
+    [
+        new("Rouge", Color.Parse("#F75464")), new("Orange", Color.Parse("#E5A55A")), new("Jaune", Color.Parse("#E5C07B")),
+        new("Vert", Color.Parse("#6AAB73")), new("Bleu", Color.Parse("#56A8F5")), new("Violet", Color.Parse("#C77DBB")),
+    ];
+
     /// <summary>Second list of the same reorder group: lines move between both.</summary>
     public System.Collections.ObjectModel.ObservableCollection<string> OtherWords { get; } = ["trèfle", "cerise"];
 

@@ -76,6 +76,7 @@
                 <ListBoxItem Content="Champs" Tag="InputsSection" />
                 <ListBoxItem Content="Badges et chips" Tag="BadgesSection" />
                 <ListBoxItem Content="Filtre et ordre" Tag="ReorderSection" />
+                <ListBoxItem Content="Couleur" Tag="ColorSection" />
                 <ListBoxItem Content="Listes" Tag="ListsSection" />
                 <ListBoxItem Content="Visionneuse" Tag="ViewerSection" />
                 <ListBoxItem Content="Dialogues" Tag="DialogsSection" />
@@ -253,6 +254,19 @@
                             <ItemsControl x:Name="OtherList" Grid.Column="2" ItemsSource="{Binding OtherWords}" xd:Reorder.Animate="True"
                                           xd:Reorder.Group="words" Background="Transparent" MinHeight="40" />
                         </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Color picker -->
+                <Border x:Name="ColorSection" Classes="section">
+                    <StackPanel Spacing="10">
+                        <TextBlock Classes="section" Text="Sélecteur de couleur" />
+                        <TextBlock Classes="secondary" TextWrapping="Wrap" MaxWidth="460" HorizontalAlignment="Left"
+                                   Text="ColorPicker : pastilles, carré de teintes, barre de teinte, code hexadécimal ; le même que dans Xylocopadream.UI.Maui. D'habitude dans un Flyout." />
+                        <Border Classes="panel" CornerRadius="6" Padding="12" HorizontalAlignment="Left">
+                            <xd:ColorPicker x:Name="Picker" Title="Couleur du texte" Presets="{Binding ColorPresets}"
+                                            DefaultColor="#DFE1E5" ResetText="Normale" SelectedColor="#56A8F5" />
+                        </Border>
                     </StackPanel>
                 </Border>
 
