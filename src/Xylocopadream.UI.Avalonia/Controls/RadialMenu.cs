@@ -73,7 +73,53 @@ public sealed class RadialMenuOptions
 
     public double ConnectorOpacity { get; init; } = 0.15;
 
+    /// <summary>Bubbles on a circle (the default) or stacked in a column beside the click.</summary>
+    public RadialMenuLayout Layout { get; init; } = RadialMenuLayout.Circle;
+
+    /// <summary>Center of the circle: the click (bubbles around the pointer, the default) or beside
+    /// <see cref="Avoid"/>.</summary>
+    public RadialMenuCenter Center { get; init; } = RadialMenuCenter.Click;
+
+    /// <summary>Bubbles one after the other (close to the pointer, the default) or equally spaced around the circle.</summary>
+    public RadialMenuSpacing Spacing { get; init; } = RadialMenuSpacing.Packed;
+
+    /// <summary>Angle of the first bubble, in degrees: 0 to the right of the center (the default), 90 below.</summary>
+    public double StartAngle { get; init; }
+
+    /// <summary>The next bubbles clockwise (the default) or counterclockwise.</summary>
+    public bool Clockwise { get; init; } = true;
+
+    /// <summary>Where the connector starts: the click (the default) or <see cref="Avoid"/>.</summary>
+    public RadialMenuConnectorOrigin ConnectorOrigin { get; init; } = RadialMenuConnectorOrigin.Click;
+
     public TimeSpan AnimationDuration { get; init; } = TimeSpan.FromMilliseconds(160);
+}
+
+public enum RadialMenuLayout
+{
+    /// <summary>On a circle (see <see cref="RadialMenuOptions.Center"/>, <see cref="RadialMenuOptions.Spacing"/>).</summary>
+    Circle,
+
+    /// <summary>In a column beside the click, the first one at its height.</summary>
+    Stack,
+}
+
+public enum RadialMenuCenter
+{
+    Click,
+    BesideAvoid,
+}
+
+public enum RadialMenuSpacing
+{
+    Packed,
+    Even,
+}
+
+public enum RadialMenuConnectorOrigin
+{
+    Click,
+    Avoid,
 }
 
 /// <summary>
@@ -316,75 +362,20 @@ public sealed class RadialMenu
     }
 
     /// <summary>
-    /// Bubbles on a circle beside the click and <see cref="RadialMenuOptions.Avoid"/> (to their right, or to their
-    /// left when there is no room): equally spaced when they fit (the circle grows a little for that), packed one
-    /// after the other otherwise; from 0° (to the right of the center) clockwise, turned when some would leave the window.
+    /// Places the bubbles as <see cref="RadialMenuOptions"/> says: on a circle (around the click, or beside
+    /// <see cref="RadialMenuOptions.Avoid"/>) from <see cref="RadialMenuOptions.StartAngle"/>, packed or equally spaced,
+    /// out of the area to avoid; or stacked beside the click. Turned, or moved, when some would leave the window.
     /// </summary>
     private void Place(IReadOnlyList<Border> bubbles)
     {
-        var count = bubbles.Count;
-        if (count == 0)
+        if (bubbles.Count == 0)
         {
             return;
         }
 
         var sizes = bubbles.Select(b => b.DesiredSize).ToList();
-        var reach = sizes.Select(s => Math.Sqrt((s.Width * s.Width) + (s.Height * s.Height)) / 2).ToList();
-        var maxHalfWidth = sizes.Max(s => s.Width) / 2;
-        var gap = _options.Gap;
-
-        // Angle needed between two neighbors on a circle of this radius.
-        double Step(int i, int j, double r) => 2 * Math.Asin(Math.Min(1, (reach[i] + reach[j] + gap) / (2 * r)));
-
-        var radius = Math.Max(_options.MinRadius, reach.Max() + gap);
-        double[] angles;
-        bool FitsEqually(double r) => count == 1 || Enumerable.Range(0, count).All(i => Step(i, (i + 1) % count, r) <= 2 * Math.PI / count);
-        var equalRadius = radius;
-        while (!FitsEqually(equalRadius) && equalRadius < radius * 2.5)
-        {
-            equalRadius *= 1.1;
-        }
-
-        if (FitsEqually(equalRadius))
-        {
-            radius = equalRadius;
-            angles = Enumerable.Range(0, count).Select(i => i * 2 * Math.PI / count).ToArray();
-        }
-        else
-        {
-            while (Enumerable.Range(0, count).Sum(i => Step(i, (i + 1) % count, radius)) > 2 * Math.PI && radius < 2000)
-            {
-                radius *= 1.1;
-            }
-
-            angles = new double[count];
-            for (var i = 1; i < count; i++)
-            {
-                angles[i] = angles[i - 1] + Step(i - 1, i, radius);
-            }
-        }
-
-        Rect[] Layout(Point center, double turn) => Enumerable.Range(0, count)
-            .Select(i => new Rect(
-                new Point(center.X + (radius * Math.Cos(angles[i] + turn)) - (sizes[i].Width / 2), center.Y + (radius * Math.Sin(angles[i] + turn)) - (sizes[i].Height / 2)),
-                sizes[i]))
-            .ToArray();
-        bool Visible(Rect[] rects) => rects.All(r => r.Left >= 4 && r.Top >= 4 && r.Right <= _layer.Width - 4 && r.Bottom <= _layer.Height - 4);
-
-        var right = new Point(_avoid.Right + _options.Margin + radius + maxHalfWidth, _origin.Y);
-        var left = new Point(_avoid.Left - _options.Margin - radius - maxHalfWidth, _origin.Y);
-        var placed = new[] { right, left }
-            .SelectMany(center => Enumerable.Range(0, 24).Select(k => Layout(center, k * Math.PI / 12)))
-            .FirstOrDefault(Visible);
-
-        // Nowhere fully visible: to the right, kept in the window.
-        placed ??= Layout(right, 0)
-            .Select(r => new Rect(
-                new Point(Math.Clamp(r.X, 4, Math.Max(4, _layer.Width - r.Width - 4)), Math.Clamp(r.Y, 4, Math.Max(4, _layer.Height - r.Height - 4))),
-                r.Size))
-            .ToArray();
-
-        for (var i = 0; i < count; i++)
+        var placed = _options.Layout == RadialMenuLayout.Stack ? Stack(sizes) : Circle(sizes);
+        for (var i = 0; i < bubbles.Count; i++)
         {
             var bounds = placed[i];
             Canvas.SetLeft(bubbles[i], bounds.X);
@@ -392,6 +383,91 @@ public sealed class RadialMenu
             bubbles[i].RenderTransform = FromOrigin(bounds);
             _bubbles.Add((bubbles[i], bounds, Math.Atan2(bounds.Center.Y - _origin.Y, bounds.Center.X - _origin.X)));
         }
+    }
+
+    /// <summary>A column right of the click and the area to avoid (left when there is no room), the first bubble
+    /// at the click's height, moved up when it would leave the window.</summary>
+    private Rect[] Stack(IReadOnlyList<Size> sizes)
+    {
+        var width = sizes.Max(s => s.Width);
+        var height = sizes.Sum(s => s.Height) + (_options.Gap * (sizes.Count - 1));
+        var x = _avoid.Right + _options.Margin;
+        if (x + width > _layer.Width - 4)
+        {
+            x = Math.Max(4, _avoid.Left - _options.Margin - width);
+        }
+
+        var y = Math.Clamp(_origin.Y - (sizes[0].Height / 2), 4, Math.Max(4, _layer.Height - height - 4));
+        var rects = new Rect[sizes.Count];
+        for (var i = 0; i < sizes.Count; i++)
+        {
+            rects[i] = new Rect(new Point(x, y), sizes[i]);
+            y += sizes[i].Height + _options.Gap;
+        }
+
+        return rects;
+    }
+
+    private Rect[] Circle(IReadOnlyList<Size> sizes)
+    {
+        var count = sizes.Count;
+        var reach = sizes.Select(s => Math.Sqrt((s.Width * s.Width) + (s.Height * s.Height)) / 2).ToList();
+        var maxHalfWidth = sizes.Max(s => s.Width) / 2;
+        var gap = _options.Gap;
+        var direction = _options.Clockwise ? 1 : -1;
+        var keepClear = _avoid.Inflate(_options.Margin);
+
+        // Angle needed between two neighbors on a circle of this radius.
+        double Step(int i, int j, double r) => 2 * Math.Asin(Math.Min(1, (reach[i] + reach[j] + gap) / (2 * r)));
+        double[] Offsets(double r) => _options.Spacing == RadialMenuSpacing.Even
+            ? Enumerable.Range(0, count).Select(i => i * 2 * Math.PI / count).ToArray()
+            : Enumerable.Range(0, count).Select(i => Enumerable.Range(1, i).Sum(k => Step(k - 1, k, r))).ToArray();
+        bool Overlap(double r) => count > 1 && (_options.Spacing == RadialMenuSpacing.Even
+            ? Enumerable.Range(0, count).Any(i => Step(i, (i + 1) % count, r) > 2 * Math.PI / count)
+            : Enumerable.Range(0, count).Sum(i => Step(i, (i + 1) % count, r)) > 2 * Math.PI);
+
+        Rect[] Layout(Point center, double radius, double turn)
+        {
+            var offsets = Offsets(radius);
+            var start = (_options.StartAngle * Math.PI / 180) + turn;
+            return Enumerable.Range(0, count)
+                .Select(i =>
+                {
+                    var angle = start + (direction * offsets[i]);
+                    return new Rect(
+                        new Point(center.X + (radius * Math.Cos(angle)) - (sizes[i].Width / 2), center.Y + (radius * Math.Sin(angle)) - (sizes[i].Height / 2)),
+                        sizes[i]);
+                })
+                .ToArray();
+        }
+
+        bool Visible(Rect[] rects) => rects.All(r => r.Left >= 4 && r.Top >= 4 && r.Right <= _layer.Width - 4 && r.Bottom <= _layer.Height - 4);
+
+        // The smallest circle where the bubbles neither overlap nor cover the click and the area to avoid.
+        var radius = Math.Max(_options.MinRadius, reach.Max() + gap);
+        Point[] Centers(double r) => _options.Center == RadialMenuCenter.Click
+            ? [_origin]
+            :
+            [
+                new Point(_avoid.Right + _options.Margin + r + maxHalfWidth, _origin.Y),
+                new Point(_avoid.Left - _options.Margin - r - maxHalfWidth, _origin.Y),
+            ];
+        while (radius < 2000
+               && (Overlap(radius) || Layout(Centers(radius)[0], radius, 0).Any(r => r.Intersects(keepClear))))
+        {
+            radius *= 1.08;
+        }
+
+        // From the start angle when everything is in the window; otherwise turned a little at a time.
+        var placed = Centers(radius)
+            .SelectMany(center => Enumerable.Range(0, 24).Select(k => Layout(center, radius, direction * k * Math.PI / 12)))
+            .FirstOrDefault(rects => Visible(rects) && !rects.Any(r => r.Intersects(keepClear)));
+
+        return placed ?? Layout(Centers(radius)[0], radius, 0)
+            .Select(r => new Rect(
+                new Point(Math.Clamp(r.X, 4, Math.Max(4, _layer.Width - r.Width - 4)), Math.Clamp(r.Y, 4, Math.Max(4, _layer.Height - r.Height - 4))),
+                r.Size))
+            .ToArray();
     }
 
     /// <summary>Drawn at the click, small: the start of the appearing animation and the end of the closing one.</summary>
@@ -409,7 +485,8 @@ public sealed class RadialMenu
             return;
         }
 
-        _connector.Points = ConvexHull(Corners(_avoid).Concat(Corners(entry.Bounds)).ToList());
+        var from = _options.ConnectorOrigin == RadialMenuConnectorOrigin.Avoid ? _avoid : new Rect(_origin - new Point(1, 1), new Size(2, 2));
+        _connector.Points = ConvexHull(Corners(from).Concat(Corners(entry.Bounds)).ToList());
         _connector.IsVisible = true;
     }
 

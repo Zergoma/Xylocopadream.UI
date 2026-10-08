@@ -33,6 +33,7 @@
                     <Button Classes="tool" ToolTip.Tip="Paramètres">
                         <Path Classes="icon" Data="{StaticResource Xd.Icon.Shield}" />
                     </Button>
+                    <xd:AccentColorButton x:Name="AccentButton" />
                     <Button Classes="tool" ToolTip.Tip="Verrouiller">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Path Classes="icon" Data="{StaticResource Xd.Icon.Lock}" />

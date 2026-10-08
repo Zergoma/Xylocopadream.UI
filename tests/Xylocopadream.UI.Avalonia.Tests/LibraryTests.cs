@@ -320,9 +320,10 @@ public sealed class LibraryTests
         Render();
         var origin = target.TranslatePoint(click, window)!.Value;
 
-        // Three bubbles, right of the click and of the area to avoid, not overlapping.
+        // Three bubbles around the click, out of the area to avoid (the selection), not overlapping.
         Assert.Equal(3, menu.Bubbles.Count);
-        Assert.All(menu.Bubbles, b => Assert.True(b.Bounds.Left > origin.X + 40, $"{b.Bounds} not right of {origin}"));
+        var avoid = new Rect(origin.X - 40, origin.Y - 10, 80, 20);
+        Assert.All(menu.Bubbles, b => Assert.False(b.Bounds.Intersects(avoid), $"{b.Bounds} over the selection {avoid}"));
         for (var i = 0; i < menu.Bubbles.Count; i++)
         {
             for (var j = i + 1; j < menu.Bubbles.Count; j++)
@@ -330,11 +331,6 @@ public sealed class LibraryTests
                 Assert.False(menu.Bubbles[i].Bounds.Intersects(menu.Bubbles[j].Bounds), "bubbles overlap");
             }
         }
-
-        // Equally spaced from 0° (right of the circle's center), clockwise: the first one is the rightmost, at the click's height.
-        Assert.Equal(menu.Bubbles.Max(b => b.Bounds.Right), menu.Bubbles[0].Bounds.Right);
-        Assert.InRange(menu.Bubbles[0].Bounds.Center.Y - origin.Y, -1, 1);
-        Assert.True(menu.Bubbles[1].Bounds.Center.Y > origin.Y, "clockwise: the second one is below");
 
         // The pointer in a bubble highlights that bubble.
         menu.PointTo(menu.Bubbles[1].Bounds.Center);
@@ -397,6 +393,91 @@ public sealed class LibraryTests
         Assert.Equal(["très grand", "court", "fin"], items);
 
         window.MouseUp(below, MouseButton.Left);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void Radial_menu_can_stack_its_groups_beside_the_click()
+    {
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var target = window.FindControl<Border>("RadialTarget")!;
+        target.BringIntoView();
+        Render();
+
+        var menu = RadialMenu.Show(
+            target,
+            new Point(60, 40),
+            [
+                new RadialMenuGroup { Title = "A", Items = [new RadialMenuItem { Header = "un" }] },
+                new RadialMenuGroup { Title = "B", Items = [new RadialMenuItem { Header = "deux" }, new RadialMenuItem { Header = "trois" }] },
+            ],
+            new RadialMenuOptions { Layout = RadialMenuLayout.Stack })!;
+        Render();
+
+        var origin = target.TranslatePoint(new Point(60, 40), window)!.Value;
+        Assert.Equal(menu.Bubbles[0].Bounds.Left, menu.Bubbles[1].Bounds.Left);
+        Assert.True(menu.Bubbles[0].Bounds.Left > origin.X);
+        Assert.True(menu.Bubbles[1].Bounds.Top > menu.Bubbles[0].Bounds.Bottom);
+        Assert.True(menu.Bubbles[0].Bounds.Top <= origin.Y && menu.Bubbles[0].Bounds.Bottom >= origin.Y, "first one at the click's height (moved up near the bottom)");
+        menu.Close();
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void Accent_button_changes_the_main_color_of_the_whole_app()
+    {
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var button = window.FindControl<AccentColorButton>("AccentButton")!;
+        try
+        {
+            button.RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Render();
+            var picker = Assert.IsType<ColorPicker>(button.OpenPicker);
+            picker.SelectedColor = Color.Parse("#16A34A");
+            Render();
+            Save(window, "8-gallery-accent.png");
+
+            Assert.Equal(Color.Parse("#16A34A"), XdAccent.Current);
+            Assert.True(window.TryFindResource("Xd.Accent", window.ActualThemeVariant, out var accent));
+            var green = ((ISolidColorBrush)accent!).Color;
+            Assert.True(green.G > green.R && green.G > green.B, $"accent {green}");
+        }
+        finally
+        {
+            XdAccent.Reset();
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Radial_menu_starts_right_of_the_click_and_goes_clockwise_close_to_it()
+    {
+        var area = new Border { Background = Brushes.DimGray };
+        var window = new Window { Width = 1000, Height = 700, Content = area };
+        window.Show();
+        Render();
+
+        var click = new Point(400, 300);
+        var menu = RadialMenu.Show(
+            area,
+            click,
+            [
+                new RadialMenuGroup { Title = "Édition", Items = [new RadialMenuItem { Header = "Copier" }, new RadialMenuItem { Header = "Coller" }] },
+                new RadialMenuGroup { Title = "Couleur", Items = [new RadialMenuItem { Header = "Texte…" }] },
+            ],
+            new RadialMenuOptions { Avoid = new Rect(360, 290, 80, 20) })!;
+        Render();
+
+        // The first group at 0°: right of the click, at its height; the second one clockwise (below), packed.
+        var first = menu.Bubbles[0].Bounds;
+        var second = menu.Bubbles[1].Bounds;
+        Assert.InRange(first.Center.Y - click.Y, -1, 1);
+        Assert.True(first.Left > 440, $"right of the selection: {first}");
+        Assert.True(second.Center.Y > click.Y, "clockwise: below");
+        Assert.True(Math.Abs(second.Center.X - click.X) < 250 && second.Top - click.Y < 250, $"close to the pointer: {second}");
+        menu.Close();
         window.Close();
     }
 
