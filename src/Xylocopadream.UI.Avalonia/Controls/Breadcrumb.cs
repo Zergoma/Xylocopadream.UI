@@ -10,9 +10,9 @@ namespace Xylocopadream.UI.Avalonia.Controls;
 
 /// <summary>
 /// A path as clickable segments separated by chevrons ("Coffre › Photos › 2026"), the last one in bold, as in Rider's
-/// navigation bar. Each item shows its <see cref="ItemsControl.DisplayMemberBinding"/> (or its <c>ToString()</c>);
+/// navigation bar. Each item shows its <see cref="TextBinding"/> (or its <c>ToString()</c>);
 /// a click runs <see cref="Command"/> with the item:
-/// <code>&lt;xd:Breadcrumb ItemsSource="{Binding Path}" DisplayMemberBinding="{Binding Name}" Command="{Binding GoToCommand}" /&gt;</code>
+/// <code>&lt;xd:Breadcrumb ItemsSource="{Binding Path}" TextBinding="{Binding Name}" Command="{Binding GoToCommand}" /&gt;</code>
 /// </summary>
 public class Breadcrumb : ItemsControl
 {
@@ -24,6 +24,11 @@ public class Breadcrumb : ItemsControl
         ItemsPanel = new FuncTemplate<Panel?>(() => new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center });
         ItemTemplate = new FuncDataTemplate<object?>((item, _) => Segment());
     }
+
+    /// <summary>Text of a segment, from its item (ItemsControl.DisplayMemberBinding cannot be used: the segments have
+    /// their own template).</summary>
+    [AssignBinding]
+    public BindingBase? TextBinding { get; set; }
 
     /// <summary>Run with the clicked item.</summary>
     public ICommand? Command
@@ -73,7 +78,7 @@ public class Breadcrumb : ItemsControl
         chevron.Bind(global::Avalonia.Controls.Shapes.Path.DataProperty, chevron.GetResourceObservable("Xd.Icon.ChevronRight"));
 
         var text = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
-        if (DisplayMemberBinding is { } member)
+        if (TextBinding is { } member)
         {
             text.Bind(TextBlock.TextProperty, member);
         }

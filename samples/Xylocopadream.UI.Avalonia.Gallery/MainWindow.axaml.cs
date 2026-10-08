@@ -13,6 +13,9 @@ namespace Xylocopadream.UI.Avalonia.Gallery;
 
 public sealed record Swatch(string Key, IBrush Brush);
 
+/// <summary>A segment of the breadcrumb demo.</summary>
+public sealed record Crumb(string Name);
+
 /// <summary>Shows every component of the library; it is its own view model (a gallery has no logic).</summary>
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
@@ -91,10 +94,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    public IReadOnlyList<string> CrumbPath { get; } = ["Coffre", "Photos", "2026", "Vacances"];
+    public IReadOnlyList<Crumb> CrumbPath { get; } = [new("Coffre"), new("Photos"), new("2026"), new("Vacances")];
 
     /// <summary>Clicked breadcrumb segment, shown under it.</summary>
-    public System.Windows.Input.ICommand CrumbCommand => new GalleryCommand(item => CrumbResult = $"Segment cliqué : {item}");
+    public System.Windows.Input.ICommand CrumbCommand => new GalleryCommand(item => CrumbResult = $"Segment cliqué : {(item as Crumb)?.Name}");
 
     public string CrumbResult
     {
