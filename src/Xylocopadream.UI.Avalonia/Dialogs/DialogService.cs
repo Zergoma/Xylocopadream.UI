@@ -17,10 +17,12 @@ public interface IDialogService
     Task<string?> PickFolderAsync(string title);
 
     /// <returns>Local paths of the chosen files (empty when cancelled).</returns>
-    Task<IReadOnlyList<string>> PickFilesAsync(string title, bool allowMultiple = true);
+    /// <param name="filters">File types to choose from, the first one selected; null for any file.</param>
+    Task<IReadOnlyList<string>> PickFilesAsync(string title, bool allowMultiple = true, IReadOnlyList<FileFilter>? filters = null);
 
     /// <returns>Local path to write to, or null.</returns>
-    Task<string?> SaveFileAsync(string title, string suggestedName);
+    /// <param name="filters">File types to save as; the first one gives the default extension.</param>
+    Task<string?> SaveFileAsync(string title, string suggestedName, IReadOnlyList<FileFilter>? filters = null);
 }
 
 /// <summary>
@@ -49,18 +51,23 @@ public class DialogService(Func<Window?> owner) : IDialogService
         return folders.FirstOrDefault()?.TryGetLocalPath();
     }
 
-    public async Task<IReadOnlyList<string>> PickFilesAsync(string title, bool allowMultiple = true)
+    public async Task<IReadOnlyList<string>> PickFilesAsync(string title, bool allowMultiple = true, IReadOnlyList<FileFilter>? filters = null)
     {
         if (Storage() is not { } storage)
         {
             return [];
         }
 
-        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions { Title = title, AllowMultiple = allowMultiple });
+        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = allowMultiple,
+            FileTypeFilter = filters?.Select(f => f.ToFileType()).ToList(),
+        });
         return files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
     }
 
-    public async Task<string?> SaveFileAsync(string title, string suggestedName)
+    public async Task<string?> SaveFileAsync(string title, string suggestedName, IReadOnlyList<FileFilter>? filters = null)
     {
         if (Storage() is not { } storage)
         {
@@ -72,6 +79,8 @@ public class DialogService(Func<Window?> owner) : IDialogService
             Title = title,
             SuggestedFileName = suggestedName,
             ShowOverwritePrompt = true,
+            FileTypeChoices = filters?.Select(f => f.ToFileType()).ToList(),
+            DefaultExtension = filters?.Select(f => f.DefaultExtension).FirstOrDefault(e => e is not null),
         });
         return file?.TryGetLocalPath();
     }

@@ -91,6 +91,12 @@
         <Setter Property="Stroke" Value="#FFFFFF" />
     </Style>
 
+    <!-- Item being dragged by a xd:Reorder handle -->
+    <Style Selector=":is(Control).xd-dragging">
+        <Setter Property="Opacity" Value="0.75" />
+        <Setter Property="ZIndex" Value="1" />
+    </Style>
+
     <!-- Destructive action button (delete, errors) -->
     <Style Selector="Button.danger">
         <Setter Property="Background" Value="#C94F4F" />

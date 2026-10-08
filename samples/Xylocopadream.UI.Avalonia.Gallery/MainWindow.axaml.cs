@@ -24,6 +24,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private readonly IDialogService _dialogs;
     private string _dialogResult = "Résultat du dernier dialogue.";
+    private string _filter = "tr";
 
     public MainWindow()
     {
@@ -44,6 +45,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public IReadOnlyList<XdIcon> Icons => XdIcons.All;
 
     public IReadOnlyList<string> Tags { get; } = ["vacances", "famille", "2026", "montagne"];
+
+    /// <summary>Reordered by the grips of the "Filtre et ordre" section.</summary>
+    public System.Collections.ObjectModel.ObservableCollection<string> Words { get; } = ["attrise", "triste", "pomme", "strate", "poire"];
+
+    public string Filter
+    {
+        get => _filter;
+        set
+        {
+            _filter = value;
+            OnPropertyChanged();
+        }
+    }
 
     public Bitmap SampleImage { get; } = CreateSampleImage(1600, 1000);
 

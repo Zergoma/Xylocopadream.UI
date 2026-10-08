@@ -75,6 +75,7 @@
                 <ListBoxItem Content="Boutons" Tag="ButtonsSection" />
                 <ListBoxItem Content="Champs" Tag="InputsSection" />
                 <ListBoxItem Content="Badges et chips" Tag="BadgesSection" />
+                <ListBoxItem Content="Filtre et ordre" Tag="ReorderSection" />
                 <ListBoxItem Content="Listes" Tag="ListsSection" />
                 <ListBoxItem Content="Visionneuse" Tag="ViewerSection" />
                 <ListBoxItem Content="Dialogues" Tag="DialogsSection" />
@@ -222,6 +223,31 @@
                                 <TextBlock Text="+2" />
                             </Border>
                         </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Filter and reorder -->
+                <Border x:Name="ReorderSection" Classes="section">
+                    <StackPanel Spacing="10" MaxWidth="460" HorizontalAlignment="Left">
+                        <TextBlock Classes="section" Text="Filtre et réordonnancement" />
+                        <TextBlock Classes="secondary" TextWrapping="Wrap"
+                                   Text="HighlightedTextBlock colore ce qui correspond au filtre ; xd:Reorder déplace les lignes par la poignée, en les animant." />
+                        <TextBox Text="{Binding Filter}" PlaceholderText="Filtrer (ex. tr)" />
+                        <ItemsControl x:Name="ReorderList" ItemsSource="{Binding Words}" xd:Reorder.Animate="True">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Border Background="{DynamicResource Xd.PanelBackground}" CornerRadius="4" Padding="4,6" Margin="0,1">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Border Background="Transparent" Padding="2" xd:Reorder.IsHandle="True" ToolTip.Tip="Glisser pour déplacer">
+                                                <Path Classes="icon" Data="{StaticResource Xd.Icon.Grip}" />
+                                            </Border>
+                                            <xd:HighlightedTextBlock SourceText="{Binding}" VerticalAlignment="Center"
+                                                                     Highlight="{Binding $parent[ItemsControl].((local:MainWindow)DataContext).Filter}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
 

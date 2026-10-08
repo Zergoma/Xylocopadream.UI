@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -123,6 +124,71 @@ public sealed class LibraryTests
         Save(window, "2-gallery-viewer.png");
 
         await Task.CompletedTask;
+        window.Close();
+    }
+
+    [Theory]
+    [InlineData("attrise", "tr", "at|[tr]|ise")]
+    [InlineData("triste", "TR", "[tr]|iste")]
+    [InlineData("trtr", "tr", "[tr]|[tr]")]
+    [InlineData("pomme", "tr", "pomme")]
+    [InlineData("pomme", "", "pomme")]
+    public void Highlight_splits_every_match_ignoring_case(string text, string highlight, string expected) =>
+        Assert.Equal(
+            expected,
+            string.Join("|", HighlightedTextBlock.Split(text, highlight).Select(p => p.IsMatch ? $"[{p.Text}]" : p.Text)));
+
+    [AvaloniaFact]
+    public void Highlighted_text_colors_its_matches()
+    {
+        var block = new HighlightedTextBlock { SourceText = "attrise", Highlight = "tr" };
+        var window = new Window { Content = block };
+        window.Show();
+
+        var runs = block.Inlines!.OfType<global::Avalonia.Controls.Documents.Run>().ToList();
+        Assert.Equal(["at", "tr", "ise"], runs.Select(r => r.Text));
+        Assert.NotNull(runs[1].Background);
+        Assert.Null(runs[0].Background);
+
+        block.Highlight = null;
+        Assert.Equal("attrise", block.Text);
+        window.Close();
+    }
+
+    [Fact]
+    public void File_filters_give_the_default_extension()
+    {
+        Assert.Equal("xvault", new FileFilter("Coffres", "*.xvault").DefaultExtension);
+        Assert.Null(FileFilter.AllFiles.DefaultExtension);
+    }
+
+    [AvaloniaFact]
+    public void Dragging_a_grip_reorders_the_items_and_animates_them()
+    {
+        Directory.CreateDirectory(Screens);
+        var window = new MainWindow { Width = 1280, Height = 860 };
+        window.Show();
+        var list = window.FindControl<ItemsControl>("ReorderList")!;
+        list.BringIntoView();
+        Render();
+
+        var rows = list.GetRealizedContainers().ToList();
+        var grip = rows[0].GetVisualDescendants().OfType<Border>().First(b => Reorder.GetIsHandle(b));
+        var start = grip.TranslatePoint(new Point(grip.Bounds.Width / 2, grip.Bounds.Height / 2), window)!.Value;
+        var third = rows[2].TranslatePoint(new Point(10, rows[2].Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(start, MouseButton.Left);
+        window.MouseMove(new Point(start.X, (start.Y + third.Y) / 2));
+        window.MouseMove(new Point(start.X, third.Y));
+        Render();
+
+        Assert.Equal(["triste", "pomme", "attrise", "strate", "poire"], window.Words);
+        Assert.Contains(list.GetRealizedContainers(), c => c.RenderTransform is TranslateTransform);
+        Save(window, "3-gallery-reorder.png");
+
+        window.MouseUp(new Point(start.X, third.Y), MouseButton.Left);
+        Render();
+        Assert.DoesNotContain(list.GetRealizedContainers(), c => c.Classes.Contains("xd-dragging"));
         window.Close();
     }
 
