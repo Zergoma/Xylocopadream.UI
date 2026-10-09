@@ -171,7 +171,8 @@ replaced to adapt the surfaces to an app.
 
 Filled 24 × 24 geometries (Google Material Icons, Apache 2.0): `<Path Data="{x:Static xd:XdIcons.Home}" Aspect="Uniform" />`.
 
-Previous, Next, Block, Shuffle, Sun, Moon, Monitor, Play, Home, List, Spellcheck, Upload, Keyboard, BarChart, Palette.
+Previous, Next, Block, Shuffle, Sun, Moon, Monitor, Play, Home, List, Spellcheck, Upload, Keyboard, BarChart, Palette,
+Person, Group, Check, Rename, Delete, Add, Up, Down, Trophy.
 `XdIcons.All` lists them with their names.
 
 ### Controls
